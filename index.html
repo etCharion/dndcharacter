@@ -3,102 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>D&D 2024 Character Sheet - Forge Artificer</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>DND 2024 Character Sheet - Gimli Ironfist</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body class="punk-theme">
-    <header class="main-header">
-        <div class="char-basic-info">
-            <h1 id="char-name">Character Name</h1>
-            <p><span id="char-race">Race</span> | <span id="char-class">Class</span> <span id="char-level">0</span></p>
-        </div>
-        <div class="vitals-bar">
-            <div class="vital-item hp">
-                <label>HP</label>
-                <input type="number" id="hp-current" value="0"> / <span id="hp-max">0</span>
-            </div>
-            <div class="vital-item ac">
-                <label>AC</label>
-                <span id="ac-value">0</span>
-            </div>
-            <div class="vital-item proficiency">
-                <label>PROF</label>
-                <span id="prof-bonus">+0</span>
-            </div>
+    <header>
+        <h1 id="char-name">Gimli Ironfist</h1>
+        <div id="basic-info" class="basic-info"></div>
+        <div class="rest-buttons">
+            <button id="rest-short">Short Rest</button>
+            <button id="rest-long">Long Rest</button>
         </div>
     </header>
 
-    <main class="grid-container">
-        <!-- Sidebar: Stats & Skills -->
-        <aside class="sidebar">
-            <section id="stats-container" class="panel">
-                <h2>Attributes</h2>
-                <div class="stats-grid"></div>
-            </section>
-            <section id="skills-container" class="panel">
-                <h2>Skills</h2>
-                <div class="skills-list"></div>
-            </section>
-        </aside>
+    <nav class="tabs">
+        <button class="tab-btn active" data-tab="stats">Stats</button>
+        <button class="tab-btn" data-tab="features">Features</button>
+        <button class="tab-btn" data-tab="spells">Spells</button>
+        <button class="tab-btn" data-tab="combat">Combat & Inv</button>
+        <button class="tab-btn" data-tab="steel-defender">Steel Defender</button>
+    </nav>
 
-        <!-- Main Content: Features & Spells -->
-        <section class="content-area">
-            <nav class="tab-nav">
-                <button class="tab-btn active" data-tab="features">Features</button>
-                <button class="tab-btn" data-tab="spells">Spells</button>
-                <button class="tab-btn" data-tab="combat">Combat & Inventory</button>
-                <button class="tab-btn" data-tab="defender">Steel Defender</button>
-            </nav>
-
-            <div id="features-tab" class="tab-content active">
-                <div class="filter-bar">
-                    <input type="text" id="feature-search" placeholder="Filter features...">
-                    <select id="feature-source-filter">
-                        <option value="all">All Sources</option>
-                        <option value="Artificer">Artificer</option>
-                        <option value="Subclass">Subclass</option>
-                    </select>
-                </div>
-                <div id="features-list"></div>
-            </div>
-
-            <div id="spells-tab" class="tab-content">
-                <div class="spell-slots-container">
-                    <h3>Spell Slots</h3>
-                    <div id="slot-trackers"></div>
-                </div>
-                <div id="spells-list"></div>
-            </div>
-
-            <div id="combat-tab" class="tab-content">
-                <section id="attacks-section">
-                    <h3>Attacks</h3>
-                    <div id="attacks-list"></div>
-                </section>
-                <div class="currency-bar">
-                    GP: <input type="number" id="gp-val" class="coin-input">
-                    SP: <input type="number" id="sp-val" class="coin-input">
-                    CP: <input type="number" id="cp-val" class="coin-input">
-                </div>
-                <section id="inventory-section">
-                    <h3>Inventory</h3>
-                    <div id="inventory-list"></div>
-                    <button id="add-item-btn" class="punk-btn" onclick="addNewItem()">+ Add Item</button>
-                </section>
-            </div>
-
-            <div id="defender-tab" class="tab-content">
-                <div id="defender-stats" class="panel">
-                    <h3>Iron Guardian</h3>
-                    <p>AC: 16 | HP: <input type="number" id="defender-hp" value="35"> / 35</p>
-                    <p>Speed: 40ft</p>
-                    <div id="defender-actions"></div>
+    <main id="tab-container">
+        <!-- Stats Tab -->
+        <section id="stats" class="tab-content active">
+            <div id="stats-grid" class="stats-grid"></div>
+            <div class="edit-stats-container">
+                <button onclick="toggleEditStats()">Edit Stats & Level</button>
+                <div id="edit-stats-form" style="display:none;">
+                    <!-- Forms will be generated by JS -->
                 </div>
             </div>
         </section>
+
+        <!-- Features Tab -->
+        <section id="features" class="tab-content">
+            <input type="text" id="feature-filter" placeholder="Filter features..." onkeyup="filterFeatures()">
+            <div id="features-list" class="features-list"></div>
+        </section>
+
+        <!-- Spells Tab -->
+        <section id="spells" class="tab-content">
+            <div id="spell-slots"></div>
+            <div class="spell-filters">
+                <input type="text" id="spell-filter" placeholder="Filter spells..." onkeyup="filterSpells()">
+            </div>
+            <div id="prepared-spells"></div>
+            <hr>
+            <div id="all-spells-list">
+                <h3>Spellbook / All Known Spells</h3>
+                <!-- List of all spells to prepare from -->
+            </div>
+        </section>
+
+        <!-- Combat & Inventory Tab -->
+        <section id="combat" class="tab-content">
+            <div class="combat-grid">
+                <div class="attacks-section">
+                    <h3>Attacks</h3>
+                    <div id="attacks-list"></div>
+                    <button onclick="addCustomAttack()">+ Add Attack</button>
+                </div>
+                <div class="inventory-section">
+                    <h3>Inventory & Equipment</h3>
+                    <div id="money-display"></div>
+                    <div id="inventory-list"></div>
+                    <button onclick="addInventoryItem()">+ Add Item</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Steel Defender Tab -->
+        <section id="steel-defender" class="tab-content">
+            <div id="sd-info"></div>
+        </section>
     </main>
 
-    <script src="data/character.js"></script>
-    <script src="js/app.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

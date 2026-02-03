@@ -1,444 +1,380 @@
-let state = null;
+import { characterData } from '../data/character.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    state = loadData();
+let state = JSON.parse(localStorage.getItem('dnd_char_state')) || { ...characterData };
 
-    // Initial Render
+function saveState() {
+    localStorage.setItem('dnd_char_state', JSON.stringify(state));
+}
+
+function init() {
+    renderTabs();
     renderAll();
+    setupEventListeners();
+}
 
-    // Event Listeners
-    setupTabListeners();
-    setupFilterListeners();
-});
+function setupEventListeners() {
+    document.getElementById('rest-short').addEventListener('click', () => {
+        handleShortRest();
+        renderAll();
+    });
+    document.getElementById('rest-long').addEventListener('click', () => {
+        handleLongRest();
+        renderAll();
+    });
+}
 
-function loadData() {
-    const saved = localStorage.getItem('dnd_character_data');
-    if (saved) {
-        return JSON.parse(saved);
+function handleShortRest() {
+    state.features.forEach(f => {
+        if (f.limitedUse && f.limitedUse.reset === 'shortRest') {
+            f.limitedUse.used = 0;
+        }
+    });
+    saveState();
+}
+
+function handleLongRest() {
+    for (let lvl in state.spells.slots) {
+        state.spells.slots[lvl].used = 0;
     }
-    // Initialize Defender if not present in initial data
-    const data = {...INITIAL_CHARACTER_DATA};
-    if (!data.defender) {
-        data.defender = {
-            hp: { current: 35, max: 35 },
-            repairUses: 0
-        };
+    state.features.forEach(f => {
+        if (f.limitedUse) {
+            f.limitedUse.used = 0;
+        }
+    });
+    if (state.steelDefender && state.steelDefender.actions) {
+        state.steelDefender.actions.forEach(a => {
+            if (a.limitedUse) a.limitedUse.used = 0;
+        });
     }
-    return data;
+    state.hp.current = state.hp.max;
+    saveState();
 }
 
-function saveData() {
-    localStorage.setItem('dnd_character_data', JSON.stringify(state));
-}
-
-function renderAll() {
-    renderHeader();
-    renderStats();
-    renderSkills();
-    renderFeatures();
-    renderSpells();
-    renderCombat();
-    renderDefender();
-}
-
-function renderHeader() {
-    document.getElementById('char-name').textContent = state.name;
-    document.getElementById('char-race').textContent = state.race;
-    document.getElementById('char-class').textContent = state.class;
-    document.getElementById('char-level').textContent = state.level;
-
-    const hpInput = document.getElementById('hp-current');
-    hpInput.value = state.vitals.hp.current;
-    document.getElementById('hp-max').textContent = state.vitals.hp.max;
-    document.getElementById('ac-value').textContent = state.vitals.ac;
-    document.getElementById('prof-bonus').textContent = `+${state.proficiencyBonus}`;
-
-    hpInput.oninput = (e) => {
-        state.vitals.hp.current = parseInt(e.target.value) || 0;
-        saveData();
-    };
+function renderTabs() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById(tab.dataset.tab).classList.add('active');
+        });
+    });
 }
 
 function renderStats() {
-    const container = document.querySelector('.stats-grid');
-    container.innerHTML = '';
-
-    for (const [stat, data] of Object.entries(state.stats)) {
-        const mod = Math.floor((data.value - 10) / 2);
-        const box = document.createElement('div');
-        box.className = 'stat-box';
-        box.innerHTML = `
-            <label>${stat}</label>
-            <div class="stat-value">${data.value}</div>
+    const statsDiv = document.getElementById('stats-grid');
+    statsDiv.innerHTML = '';
+    for (let stat in state.stats) {
+        const val = state.stats[stat];
+        const mod = Math.floor((val - 10) / 2);
+        const card = document.createElement('div');
+        card.className = 'stat-card';
+        card.innerHTML = `
+            <div class="stat-name">${stat.toUpperCase()}</div>
+            <div class="stat-value">${val}</div>
             <div class="stat-mod">${mod >= 0 ? '+' : ''}${mod}</div>
         `;
-        container.appendChild(box);
+        statsDiv.appendChild(card);
     }
+
+    const basicInfo = document.getElementById('basic-info');
+    basicInfo.innerHTML = `
+        <div class="info-item"><span>Level:</span> <strong>${state.level}</strong></div>
+        <div class="info-item"><span>HP:</span> <strong>${state.hp.current} / ${state.hp.max}</strong></div>
+        <div class="info-item"><span>AC:</span> <strong>${state.ac}</strong></div>
+        <div class="info-item"><span>Proficiency:</span> <strong>+${state.proficiencyBonus}</strong></div>
+    `;
 }
 
-function renderSkills() {
-    const container = document.querySelector('.skills-list');
-    container.innerHTML = '';
-
-    state.skills.forEach(skill => {
-        const mod = Math.floor((state.stats[skill.stat].value - 10) / 2);
-        const total = mod + (skill.proficient ? state.proficiencyBonus : 0);
-        const row = document.createElement('div');
-        row.className = `skill-row ${skill.proficient ? 'proficient' : ''}`;
-        row.innerHTML = `
-            <span>${skill.proficient ? '●' : '○'} ${skill.name} <small>(${skill.stat.substring(0,3)})</small></span>
-            <span>${total >= 0 ? '+' : ''}${total}</span>
-        `;
-        container.appendChild(row);
-    });
-}
-
-function renderFeatures() {
+function renderFeatures(filter = '') {
     const container = document.getElementById('features-list');
     container.innerHTML = '';
-
     state.features.forEach((feat, index) => {
-        const card = document.createElement('div');
-        card.className = 'feature-card';
-        card.dataset.source = feat.source;
-        card.innerHTML = `
-            <div class="card-header" onclick="toggleDetails(this)">
-                <strong>${feat.name}</strong>
-                <small>${feat.source}</small>
+        if (filter && !feat.name.toLowerCase().includes(filter.toLowerCase()) && !feat.description.toLowerCase().includes(filter.toLowerCase())) {
+            return;
+        }
+        const item = document.createElement('div');
+        item.className = 'feature-item';
+        item.innerHTML = `
+            <div class="feature-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                <strong>${feat.name}</strong> <span>${feat.source}</span>
             </div>
-            <div class="card-details hidden">
-                <p>${feat.description}</p>
-                ${feat.limit ? renderUses(feat, index) : ''}
+            <div class="feature-body hidden">
+                <div class="feature-desc">${feat.description}</div>
+                ${feat.details ? `<div class="feature-details">${feat.details}</div>` : ''}
+                ${feat.limitedUse ? renderLimitedUse(feat, 'feature', index) : ''}
             </div>
         `;
-        container.appendChild(card);
+        container.appendChild(item);
     });
 }
 
-function renderUses(feat, index) {
-    let html = `<div class="uses-tracker">`;
-    for (let i = 0; i < feat.limit; i++) {
-        const filled = i < feat.uses ? 'filled' : '';
-        html += `<div class="use-box ${filled}" onclick="toggleFeatureUse(${index}, ${i}, this)"></div>`;
+function renderLimitedUse(obj, type, index) {
+    let html = '<div class="limited-use">';
+    const used = obj.limitedUse.used || 0;
+    for (let i = 0; i < obj.limitedUse.max; i++) {
+        const checked = i < used ? 'checked' : '';
+        html += `<input type="checkbox" ${checked} onclick="toggleLimitedUse('${type}', ${index}, ${i})">`;
     }
-    html += ` <small>(${feat.reset} rest)</small></div>`;
+    html += ` <span>(${obj.limitedUse.reset})</span></div>`;
     return html;
 }
 
-window.toggleFeatureUse = (index, useIndex, el) => {
-    const feat = state.features[index];
-    if (el.classList.contains('filled')) {
-        feat.uses = useIndex;
+window.toggleLimitedUse = (type, index, useIndex) => {
+    let obj;
+    if (type === 'feature') obj = state.features[index];
+    if (type === 'sd-action') obj = state.steelDefender.actions[index];
+
+    const used = obj.limitedUse.used || 0;
+    if (useIndex < used) {
+        obj.limitedUse.used = useIndex;
     } else {
-        feat.uses = useIndex + 1;
+        obj.limitedUse.used = useIndex + 1;
     }
-    saveData();
-    const container = el.parentElement;
-    const boxes = container.querySelectorAll('.use-box');
-    boxes.forEach((box, i) => {
-        box.classList.toggle('filled', i < feat.uses);
-    });
+    saveState();
+    renderAll();
 };
 
-function renderSpells() {
-    const slotContainer = document.getElementById('slot-trackers');
-    slotContainer.innerHTML = '';
-
-    for (const [lvl, data] of Object.entries(state.spellcasting.slots)) {
+function renderSpells(filter = '') {
+    const slotsDiv = document.getElementById('spell-slots');
+    slotsDiv.innerHTML = '<h3>Spell Slots</h3>';
+    for (let lvl in state.spells.slots) {
+        const slot = state.spells.slots[lvl];
         const row = document.createElement('div');
         row.className = 'slot-row';
-        row.innerHTML = `
-            <label>Level ${lvl}</label>
-            <div class="slot-boxes">
-                ${renderSlotBoxes(lvl, data)}
-            </div>
-        `;
-        slotContainer.appendChild(row);
+        row.innerHTML = `<span>Level ${lvl}:</span>`;
+        for (let i = 0; i < slot.max; i++) {
+            const checked = i < slot.used ? 'checked' : '';
+            row.innerHTML += `<input type="checkbox" ${checked} onclick="toggleSpellSlot(${lvl}, ${i})">`;
+        }
+        slotsDiv.appendChild(row);
     }
 
-    const spellContainer = document.getElementById('spells-list');
-    spellContainer.innerHTML = '';
-
-    state.spellcasting.spells.forEach((spell, index) => {
-        const card = document.createElement('div');
-        card.className = `spell-card ${spell.prepared ? 'prepared' : ''}`;
-        card.innerHTML = `
-            <div class="card-header">
-                <span onclick="togglePrepared(${index})" style="cursor:pointer">
-                    ${spell.prepared ? '★' : '☆'} <strong>${spell.name}</strong>
-                </span>
-                <small>Lvl ${spell.level}</small>
-            </div>
-            <div class="card-details hidden">
-                <p>${spell.description}</p>
-                ${spell.level > 0 && spell.prepared ? `<button class="punk-btn" onclick="castSpell(${spell.level})">Cast (Expends Slot)</button>` : ''}
-                ${spell.level > 0 && !spell.prepared ? '<p><small>Must be prepared to cast.</small></p>' : ''}
+    const preparedDiv = document.getElementById('prepared-spells');
+    preparedDiv.innerHTML = '<h3>Prepared Spells</h3>';
+    state.spells.prepared.forEach((spell, idx) => {
+        if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase())) return;
+        const sDiv = document.createElement('div');
+        sDiv.className = 'spell-item';
+        sDiv.innerHTML = `
+            <div onclick="this.querySelector('.spell-desc').classList.toggle('hidden')">
+                <strong>${spell.name}</strong> (Lvl ${spell.level}) - ${spell.type}
+                <button onclick="event.stopPropagation(); castSpell(${idx})">Cast</button>
+                <button onclick="event.stopPropagation(); unprepareSpell(${idx})">Unprepare</button>
+                <div class="spell-desc hidden">${spell.description || 'No description.'}</div>
             </div>
         `;
-        card.querySelector('.card-header').addEventListener('click', (e) => {
-            if (e.target.tagName !== 'SPAN') toggleDetails(card.querySelector('.card-header'));
-        });
-        spellContainer.appendChild(card);
+        preparedDiv.appendChild(sDiv);
+    });
+
+    const allSpellsDiv = document.getElementById('all-spells-list');
+    allSpellsDiv.innerHTML = '<h3>All Known Spells</h3>';
+    state.spells.all.forEach((spell, idx) => {
+        if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase())) return;
+        const isPrepared = state.spells.prepared.some(p => p.name === spell.name);
+        if (isPrepared) return;
+        const sDiv = document.createElement('div');
+        sDiv.className = 'spell-item-all';
+        sDiv.innerHTML = `
+            <span>${spell.name} (Lvl ${spell.level})</span>
+            <button onclick="prepareSpell(${idx})">Prepare</button>
+        `;
+        allSpellsDiv.appendChild(sDiv);
     });
 }
 
-function renderSlotBoxes(lvl, data) {
-    let html = '';
-    for (let i = 0; i < data.total; i++) {
-        const filled = i < data.used ? 'filled' : '';
-        html += `<div class="use-box ${filled}" onclick="toggleSlot(${lvl}, ${i}, this)"></div>`;
-    }
-    return html;
-}
-
-window.toggleSlot = (lvl, index, el) => {
-    const slot = state.spellcasting.slots[lvl];
-    if (el.classList.contains('filled')) {
+window.toggleSpellSlot = (lvl, index) => {
+    const slot = state.spells.slots[lvl];
+    if (index < slot.used) {
         slot.used = index;
     } else {
         slot.used = index + 1;
     }
-    saveData();
-    const container = el.parentElement;
-    const boxes = container.querySelectorAll('.use-box');
-    boxes.forEach((box, i) => {
-        box.classList.toggle('filled', i < slot.used);
-    });
+    saveState();
+    renderAll();
 };
 
-window.castSpell = (lvl) => {
-    if (state.spellcasting.slots[lvl].used < state.spellcasting.slots[lvl].total) {
-        state.spellcasting.slots[lvl].used++;
-        saveData();
-        renderSpells();
-    } else {
-        alert("No slots remaining!");
+window.castSpell = (idx) => {
+    const spell = state.spells.prepared[idx];
+    if (spell.level > 0) {
+        if (state.spells.slots[spell.level].used < state.spells.slots[spell.level].max) {
+            state.spells.slots[spell.level].used++;
+            saveState();
+            renderAll();
+        } else {
+            alert('No slots left!');
+        }
     }
 };
 
-window.togglePrepared = (index) => {
-    const spell = state.spellcasting.spells[index];
-    if (spell.level === 0) return;
-    spell.prepared = !spell.prepared;
-    saveData();
+window.prepareSpell = (idx) => {
+    state.spells.prepared.push(state.spells.all[idx]);
+    saveState();
+    renderAll();
+};
+
+window.unprepareSpell = (idx) => {
+    state.spells.prepared.splice(idx, 1);
+    saveState();
+    renderAll();
+};
+
+function renderInventory() {
+    const invDiv = document.getElementById('inventory-list');
+    invDiv.innerHTML = '';
+    state.inventory.forEach((item, idx) => {
+        const iDiv = document.createElement('div');
+        iDiv.className = 'inv-item';
+        iDiv.innerHTML = `
+            <input type="text" value="${item.name}" onchange="updateItem(${idx}, 'name', this.value)">
+            <input type="text" value="${item.properties || ''}" onchange="updateItem(${idx}, 'properties', this.value)">
+            <label><input type="checkbox" ${item.equipped ? 'checked' : ''} onchange="toggleEquip(${idx})"> Equip</label>
+            <button onclick="removeItem(${idx})">x</button>
+        `;
+        invDiv.appendChild(iDiv);
+    });
+
+    const moneyDiv = document.getElementById('money-display');
+    moneyDiv.innerHTML = `GP: <input type="number" value="${state.money.gp}" onchange="updateMoney('gp', this.value)">`;
+
+    const attackDiv = document.getElementById('attacks-list');
+    attackDiv.innerHTML = '';
+    state.inventory.filter(i => i.type === 'weapon' && i.equipped).forEach(w => {
+        const aDiv = document.createElement('div');
+        aDiv.className = 'attack-item';
+        const intMod = Math.floor((state.stats.int - 10) / 2);
+        const hit = state.proficiencyBonus + intMod;
+        aDiv.innerHTML = `
+            <strong>${w.name}</strong>
+            <span>Hit: +${hit}</span>
+            <span>Damage: ${w.properties} + ${intMod}</span>
+        `;
+        attackDiv.appendChild(aDiv);
+    });
+}
+
+window.updateItem = (idx, field, val) => {
+    state.inventory[idx][field] = val;
+    saveState();
+    renderAll();
+};
+
+window.updateMoney = (field, val) => {
+    state.money[field] = parseInt(val);
+    saveState();
+};
+
+window.removeItem = (idx) => {
+    state.inventory.splice(idx, 1);
+    saveState();
+    renderAll();
+};
+
+window.addInventoryItem = () => {
+    state.inventory.push({ name: 'New Item', type: 'weapon', properties: '1d6', equipped: false });
+    saveState();
+    renderAll();
+};
+
+window.toggleEquip = (idx) => {
+    state.inventory[idx].equipped = !state.inventory[idx].equipped;
+    saveState();
+    renderAll();
+};
+
+function renderSteelDefender() {
+    const sd = state.steelDefender;
+    const intMod = Math.floor((state.stats.int - 10) / 2);
+    const pb = state.proficiencyBonus;
+
+    sd.ac = 12 + intMod;
+    sd.hp.max = 5 + (5 * state.level);
+
+    const div = document.getElementById('sd-info');
+    div.innerHTML = `
+        <h3>${sd.name}</h3>
+        <p>AC: ${sd.ac} | HP: ${sd.hp.current}/${sd.hp.max} | Speed: ${sd.speed}</p>
+        <p>Senses: Darkvision 60 ft., Passive Perception 10 + PB = ${10 + pb}</p>
+        <div>
+            <strong>Actions:</strong>
+            ${sd.actions.map((a, i) => {
+                let desc = a.description;
+                if (a.name === "Force-Empowered Rend") {
+                    desc = `Melee Attack Roll: +${pb + intMod} to hit, reach 5 ft. Hit: 1d8 + ${pb} force damage.`;
+                }
+                if (a.name === "Repair (3/Day)") {
+                    desc = `The defender, or one Construct or object it can see within 5 feet of it, regains 2d8 + ${pb} HP.`;
+                }
+                return `
+                <div class="sd-action">
+                    <strong>${a.name}</strong>: ${desc}
+                    ${a.limitedUse ? renderLimitedUse(a, 'sd-action', i) : ''}
+                </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+window.filterFeatures = () => {
+    const val = document.getElementById('feature-filter').value;
+    renderFeatures(val);
+};
+
+window.filterSpells = () => {
+    const val = document.getElementById('spell-filter').value;
+    renderSpells(val);
+};
+
+window.toggleEditStats = () => {
+    const form = document.getElementById('edit-stats-form');
+    if (form.style.display === 'none') {
+        form.style.display = 'block';
+        form.innerHTML = `
+            Level: <input type="number" value="${state.level}" onchange="updateState('level', this.value)"><br>
+            Max HP: <input type="number" value="${state.hp.max}" onchange="updateHP('max', this.value)"><br>
+            Current HP: <input type="number" value="${state.hp.current}" onchange="updateHP('current', this.value)"><br>
+            AC: <input type="number" value="${state.ac}" onchange="updateState('ac', this.value)"><br>
+            STR: <input type="number" value="${state.stats.str}" onchange="updateStat('str', this.value)"><br>
+            INT: <input type="number" value="${state.stats.int}" onchange="updateStat('int', this.value)"><br>
+            CON: <input type="number" value="${state.stats.con}" onchange="updateStat('con', this.value)"><br>
+            DEX: <input type="number" value="${state.stats.dex}" onchange="updateStat('dex', this.value)"><br>
+            WIS: <input type="number" value="${state.stats.wis}" onchange="updateStat('wis', this.value)"><br>
+            CHA: <input type="number" value="${state.stats.cha}" onchange="updateStat('cha', this.value)"><br>
+        `;
+    } else {
+        form.style.display = 'none';
+    }
+};
+
+window.updateState = (field, val) => {
+    state[field] = parseInt(val);
+    if (field === 'level') {
+        state.proficiencyBonus = Math.floor((state.level - 1) / 4) + 2;
+    }
+    saveState();
+    renderAll();
+};
+
+window.updateHP = (field, val) => {
+    state.hp[field] = parseInt(val);
+    saveState();
+    renderAll();
+};
+
+window.updateStat = (stat, val) => {
+    state.stats[stat] = parseInt(val);
+    saveState();
+    renderAll();
+};
+
+function renderAll() {
+    renderStats();
+    renderFeatures();
     renderSpells();
-};
-
-function renderCombat() {
-    // Generate dynamic attacks from inventory if they don't exist as overrides
-    if (!state.attackOverrides) state.attackOverrides = {};
-
-    const baseAttacks = [
-        { id: 'firebolt', name: "Fire Bolt", bonus: 7, damage: "2d10", type: "Fire" }
-    ];
-
-    state.inventory.filter(item => item.type === 'weapon' && item.equipped).forEach(weapon => {
-        const mod = Math.floor((state.stats[weapon.stat || 'STR'].value - 10) / 2);
-        baseAttacks.push({
-            id: `weapon-${weapon.id}`,
-            name: weapon.name,
-            bonus: mod + state.proficiencyBonus,
-            damage: `${weapon.damage}${mod >= 0 ? '+' : ''}${mod}`,
-            type: weapon.properties || 'Physical'
-        });
-    });
-
-    const attackContainer = document.getElementById('attacks-list');
-    attackContainer.innerHTML = '';
-    baseAttacks.forEach(atk => {
-        const override = state.attackOverrides[atk.id] || {};
-        const bonus = override.bonus !== undefined ? override.bonus : atk.bonus;
-        const damage = override.damage !== undefined ? override.damage : atk.damage;
-
-        const div = document.createElement('div');
-        div.className = 'feature-card';
-        div.innerHTML = `
-            <div class="card-header">
-                <strong>${atk.name}</strong>
-                <span>
-                    +<input type="number" value="${bonus}" class="atk-edit-input" oninput="updateAttackOverride('${atk.id}', 'bonus', this.value)"> to hit
-                </span>
-            </div>
-            <div class="card-details">
-                Damage: <input type="text" value="${damage}" class="atk-edit-input wide" oninput="updateAttackOverride('${atk.id}', 'damage', this.value)">
-                (${atk.type})
-            </div>
-        `;
-        attackContainer.appendChild(div);
-    });
-
-    const invContainer = document.getElementById('inventory-list');
-    invContainer.innerHTML = '';
-    state.inventory.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'feature-card';
-        div.innerHTML = `
-            <div class="card-header">
-                <span onclick="toggleEquip(${index})" style="cursor:pointer">
-                    ${item.equipped ? '☑' : '☐'} ${item.name}
-                </span>
-                <small>${item.type}</small>
-            </div>
-            <div class="card-details hidden">
-                ${item.properties}
-                <br>
-                <button class="punk-btn" onclick="removeItem(${index})">Delete</button>
-            </div>
-        `;
-        div.querySelector('.card-header').addEventListener('click', (e) => {
-            if (e.target.tagName !== 'SPAN') toggleDetails(div.querySelector('.card-header'));
-        });
-        invContainer.appendChild(div);
-    });
-
-    // Currency
-    const gp = document.getElementById('gp-val');
-    const sp = document.getElementById('sp-val');
-    const cp = document.getElementById('cp-val');
-
-    gp.value = state.currency.gp;
-    sp.value = state.currency.sp;
-    cp.value = state.currency.cp;
-
-    gp.oninput = (e) => { state.currency.gp = parseInt(e.target.value) || 0; saveData(); };
-    sp.oninput = (e) => { state.currency.sp = parseInt(e.target.value) || 0; saveData(); };
-    cp.oninput = (e) => { state.currency.cp = parseInt(e.target.value) || 0; saveData(); };
+    renderInventory();
+    renderSteelDefender();
 }
 
-window.updateAttackOverride = (id, field, value) => {
-    if (!state.attackOverrides[id]) state.attackOverrides[id] = {};
-    state.attackOverrides[id][field] = value;
-    saveData();
-};
-
-window.toggleEquip = (index) => {
-    state.inventory[index].equipped = !state.inventory[index].equipped;
-    saveData();
-    renderCombat();
-};
-
-window.addNewItem = () => {
-    const name = prompt("Item Name:");
-    if (!name) return;
-    const type = prompt("Type (weapon/armor/gear):", "gear");
-    const props = prompt("Properties (e.g. 1d6 bludgeoning):", "");
-
-    const newItem = {
-        id: Date.now(),
-        name: name,
-        type: type,
-        equipped: false,
-        properties: props
-    };
-
-    if (type === 'weapon') {
-        newItem.damage = prompt("Base Damage (e.g. 1d6):", "1d6");
-        newItem.stat = prompt("Stat (STR/DEX):", "STR");
-    }
-
-    state.inventory.push(newItem);
-    saveData();
-    renderCombat();
-};
-
-window.removeItem = (index) => {
-    state.inventory.splice(index, 1);
-    saveData();
-    renderCombat();
-};
-
-function renderDefender() {
-    const actions = [
-        { id: 'rend', name: "Force-Empowered Rend", bonus: 7, damage: "1d8+4", type: "Force" },
-        { id: 'repair', name: "Repair", limit: 3, uses: state.defender.repairUses, reset: "long" }
-    ];
-
-    const hpInput = document.getElementById('defender-hp');
-    hpInput.value = state.defender.hp.current;
-    hpInput.oninput = (e) => {
-        state.defender.hp.current = parseInt(e.target.value) || 0;
-        saveData();
-    };
-
-    const container = document.getElementById('defender-actions');
-    container.innerHTML = '';
-    actions.forEach((act, index) => {
-        const div = document.createElement('div');
-        div.className = 'feature-card';
-        div.innerHTML = `
-            <div class="card-header">
-                <strong>${act.name}</strong>
-                ${act.bonus ? `<span>+${act.bonus} to hit</span>` : ''}
-            </div>
-            <div class="card-details">
-                ${act.damage ? `Damage: ${act.damage} ${act.type}` : ''}
-                ${act.limit ? renderDefenderUses(act) : ''}
-            </div>
-        `;
-        container.appendChild(div);
-    });
-}
-
-function renderDefenderUses(act) {
-    let html = `<div class="uses-tracker">`;
-    for (let i = 0; i < act.limit; i++) {
-        const filled = i < act.uses ? 'filled' : '';
-        html += `<div class="use-box ${filled}" onclick="toggleDefenderRepair(${i}, this)"></div>`;
-    }
-    html += ` <small>(long rest)</small></div>`;
-    return html;
-}
-
-window.toggleDefenderRepair = (useIndex, el) => {
-    if (el.classList.contains('filled')) {
-        state.defender.repairUses = useIndex;
-    } else {
-        state.defender.repairUses = useIndex + 1;
-    }
-    saveData();
-    const container = el.parentElement;
-    const boxes = container.querySelectorAll('.use-box');
-    boxes.forEach((box, i) => {
-        box.classList.toggle('filled', i < state.defender.repairUses);
-    });
-};
-
-window.toggleDetails = (el) => {
-    const details = el.nextElementSibling;
-    details.classList.toggle('hidden');
-};
-
-function setupTabListeners() {
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-            btn.classList.add('active');
-            document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
-        });
-    });
-}
-
-function setupFilterListeners() {
-    const search = document.getElementById('feature-search');
-    const sourceFilter = document.getElementById('feature-source-filter');
-
-    const filterFn = () => {
-        const query = search.value.toLowerCase();
-        const source = sourceFilter.value;
-
-        document.querySelectorAll('.feature-card').forEach(card => {
-            if (card.closest('#features-list')) {
-                const name = card.querySelector('strong').textContent.toLowerCase();
-                const cardSource = card.dataset.source;
-                const matchesQuery = name.includes(query);
-                const matchesSource = source === 'all' || cardSource === source;
-                card.classList.toggle('hidden', !matchesQuery || !matchesSource);
-            }
-        });
-    };
-
-    search.addEventListener('input', filterFn);
-    sourceFilter.addEventListener('change', filterFn);
-}
+init();
