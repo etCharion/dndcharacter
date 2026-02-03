@@ -1,70 +1,111 @@
+import { allSpells } from './spells.js';
+import { allPlans } from './plans.js';
+
 export const characterData = {
-    name: "Gimli Ironfist",
+    name: "Praštiklešť",
     class: "Artificer (Battle Smith)",
     level: 6,
-    race: "Mountain Dwarf",
-    background: "Guild Artisan",
-    alignment: "Lawful Good",
+    race: "Trpaslík (Mountain Dwarf)",
+    background: "Merchant (Kupec)",
+    alignment: "Neutral",
     stats: {
-        str: 16,
-        dex: 10,
-        con: 16,
-        int: 18,
-        wis: 12,
-        cha: 8
+        str: 11,
+        dex: 16,
+        con: 18,
+        int: 20,
+        wis: 14,
+        cha: 16
     },
     hp: {
-        current: 51,
-        max: 51,
+        current: 63,
+        max: 63,
         temp: 0
     },
-    ac: 19,
-    speed: 25,
+    ac: 19, // Half Plate (15) + Dex (2 max) + Shield (2) = 19. If they have Shield +1, it would be 20.
+    speed: 30,
     proficiencyBonus: 3,
     savingThrows: ["con", "int"],
     skills: {
-        athletics: { proficient: true, expert: false },
-        history: { proficient: true, expert: false },
-        insight: { proficient: true, expert: false },
-        investigation: { proficient: true, expert: false },
-        perception: { proficient: true, expert: false }
+        animalHandling: { proficient: true, expert: false },
+        persuasion: { proficient: true, expert: false },
+        perception: { proficient: false, expert: false, passive: 15 }
     },
     features: [
         {
-            name: "Magical Tinkering",
-            description: "You learn how to invest a spark of magic into mundane objects. To use this ability, you must have thieves' tools or artisan's tools in hand. You then touch a tiny nonmagical object as an action and give it one of several magical properties.",
-            source: "Artificer 1",
-            details: "Properties: Light, Recorded Message, Odor/Sound, Static Visual Effect."
+            name: "Darkvision",
+            description: "You have Darkvision with a range of 120 feet.",
+            source: "Race"
         },
         {
-            name: "Infuse Item",
-            description: "You've gained the ability to imbue mundane items with certain magical infusions.",
-            source: "Artificer 2",
-            details: "Infusions Known: 6. Items Infused: 3. Infusions: Enhanced Defense, Enhanced Weapon, Returning Weapon, Replicate Magic Item, etc.",
+            name: "Dwarven Resilience",
+            description: "You have Resistance to Poison damage. You also have Advantage on saving throws you make to avoid or end the Poisoned condition.",
+            source: "Race"
+        },
+        {
+            name: "Dwarven Toughness",
+            description: "Your Hit Point maximum increases by 1, and it increases by 1 again whenever you gain a level.",
+            source: "Race"
+        },
+        {
+            name: "Stonecunning",
+            description: "As a Bonus Action, you gain Tremorsense with a range of 60 feet for 10 minutes while touching a stone surface.",
+            source: "Race",
             limitedUse: {
                 max: 3,
                 reset: "longRest"
             }
         },
         {
-            name: "The Right Tool for the Job",
-            description: "You can magically create one set of artisan's tools in an unoccupied space within 5 feet of you. This creation requires 1 hour of uninterrupted work, which can coincide with a short or long rest.",
-            source: "Artificer 3"
+            name: "Lucky",
+            description: "You have Luck Points that you can spend to gain Advantage or impose Disadvantage on attack rolls against you.",
+            source: "Feat (Background)",
+            limitedUse: {
+                max: 3,
+                reset: "longRest"
+            }
         },
         {
-            name: "Tool Mastery",
-            description: "Your proficiency bonus is now doubled for any ability check you make that uses your proficiency with a tool.",
-            source: "Artificer 6"
+            name: "Warcaster",
+            description: "Advantage on Con saves for Concentration. Can cast spells as reactions for opportunity attacks. Can perform Somatic components with weapons/shield.",
+            source: "Feat"
+        },
+        {
+            name: "Tinker's Magic",
+            description: "You know the Mending cantrip. You can also create mundane items using Tinker's Tools.",
+            source: "Artificer 1"
+        },
+        {
+            name: "Replicate Magic Item",
+            description: "You can create magic items from your known plans after a long rest.",
+            source: "Artificer 2",
+            limitedUse: {
+                max: 3,
+                reset: "longRest"
+            }
+        },
+        {
+            name: "Tools of the Trade",
+            description: "Proficiency with Smith's Tools. Time required to craft weapons is halved.",
+            source: "Battle Smith 3"
         },
         {
             name: "Battle Ready",
-            description: "When you attack with a magic weapon, you can use your Intelligence modifier, instead of Strength or Dexterity modifier, for the attack and damage rolls.",
+            description: "Use Intelligence for attack/damage rolls with magic weapons. Proficiency with Martial weapons.",
             source: "Battle Smith 3"
         },
         {
             name: "Extra Attack",
-            description: "You can attack twice, instead of once, whenever you take the Attack action on your turn.",
+            description: "You can attack twice. You can forgo one attack to command your Steel Defender to take the Force-Empowered Rend action.",
             source: "Artificer 5"
+        },
+        {
+            name: "Magic Item Tinker",
+            description: "Recharge, Drain, or Transmute magic items created with Replicate Magic Item.",
+            source: "Artificer 6",
+            limitedUse: {
+                max: 1,
+                reset: "longRest"
+            }
         }
     ],
     spells: {
@@ -72,52 +113,47 @@ export const characterData = {
             1: { max: 4, used: 0 },
             2: { max: 2, used: 0 }
         },
-        prepared: [
-            { name: "Cure Wounds", level: 1, type: "Artificer", description: "A creature you touch regains a number of hit points equal to 1d8 + your spellcasting ability modifier." },
-            { name: "Shield", level: 1, type: "Battle Smith", description: "An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from magic missile." },
-            { name: "Heroism", level: 1, type: "Battle Smith", description: "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to being frightened and gains temporary hit points equal to your spellcasting ability modifier at the start of each of its turns." },
-            { name: "Thunderwave", level: 1, type: "Artificer", description: "A wave of thunderous force sweeps out from you. Each creature in a 15-foot cube originating from you must make a Constitution saving throw." },
-            { name: "Blur", level: 2, type: "Battle Smith", description: "Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has disadvantage on attack rolls against you." },
-            { name: "Branding Smite", level: 2, type: "Battle Smith", description: "The next time you hit a creature with a weapon attack before this spell ends, the weapon gleams with astral radiance as you strike. The attack deals an extra 2d6 radiant damage." }
-        ],
-        all: [
-            { name: "Guidance", level: 0, description: "You touch one willing creature. Once before the spell ends, the target can roll a d4 and add the number rolled to one ability check of its choice." },
-            { name: "Mending", level: 0, description: "This spell repairs a single break or tear in an object you touch." },
-            { name: "Cure Wounds", level: 1 },
-            { name: "Faerie Fire", level: 1 },
-            { name: "Grease", level: 1 },
-            { name: "Heroism", level: 1 },
-            { name: "Shield", level: 1 },
-            { name: "Thunderwave", level: 1 },
-            { name: "Aid", level: 2 },
-            { name: "Blur", level: 2 },
-            { name: "Branding Smite", level: 2 },
-            { name: "Lesser Restoration", level: 2 },
-            { name: "Warding Bond", level: 2 }
-        ]
+        prepared: allSpells.filter(s => s.alwaysPrepared || s.level === 0),
+        all: allSpells
+    },
+    plans: {
+        prepared: [],
+        all: allPlans
     },
     inventory: [
+        { name: "Navigator's Tools", type: "tools", weight: 2, cost: "25 gp" },
+        { name: "Pouch", type: "gear", weight: 1, cost: "5 sp" },
+        { name: "Pouch", type: "gear", weight: 1, cost: "5 sp" },
+        { name: "Traveler's Clothes", type: "gear", weight: 4, cost: "2 gp" },
         { name: "Warhammer", type: "weapon", properties: "Versatile (1d10)", weight: 2, cost: "15 gp", equipped: true },
         { name: "Half Plate", type: "armor", properties: "AC 15 + Dex (max 2)", weight: 40, cost: "750 gp", equipped: true },
-        { name: "Shield", type: "armor", properties: "AC +2", weight: 6, cost: "10 gp", equipped: true },
-        { name: "Smith's Tools", type: "tools", weight: 8, cost: "20 gp" },
-        { name: "Tinker's Tools", type: "tools", weight: 10, cost: "50 gp" }
+        { name: "Shield", type: "armor", properties: "AC +2", weight: 6, cost: "10 gp", equipped: true }
     ],
     money: {
-        cp: 0, sp: 0, gp: 120, ep: 0, pp: 0
+        cp: 0, sp: 0, gp: 22, ep: 0, pp: 0
     },
     steelDefender: {
-        name: "Iron Defender",
-        ac: 16,
-        hp: { current: 35, max: 35 },
+        name: "Steel Defender",
+        ac: 17, // 12 + INT(5) = 17
+        hp: { current: 35, max: 35 }, // 5 + 5*6 = 35
         speed: 40,
         stats: { str: 14, dex: 12, con: 14, int: 4, wis: 10, cha: 6 },
         actions: [
-            { name: "Force-Empowered Rend", description: "Melee Attack Roll: +7 to hit, reach 5 ft. Hit: 1d8 + 4 force damage." },
-            { name: "Repair (3/Day)", description: "The defender, or one Construct or object it can see within 5 feet of it, regains 2d8 + 4 HP.", limitedUse: { max: 3, reset: "longRest" } }
+            {
+                name: "Force-Empowered Rend",
+                description: "Melee Attack Roll: +8 to hit, reach 5 ft. Hit: 1d8 + 5 force damage."
+            },
+            {
+                name: "Repair (3/Day)",
+                description: "The defender, or one Construct or object it can see within 5 feet of it, regains 2d8 + 5 HP.",
+                limitedUse: { max: 3, reset: "longRest" }
+            }
         ],
         reactions: [
-            { name: "Deflect Attack", description: "Trigger: A creature the defender can see within 5 feet of it makes an attack roll targeting a different creature. Response: The triggering creature makes the attack roll with Disadvantage." }
+            {
+                name: "Deflect Attack",
+                description: "Trigger: A creature the defender can see within 5 feet of it makes an attack roll targeting a different creature. Response: The triggering creature makes the attack roll with Disadvantage."
+            }
         ]
     }
 };
