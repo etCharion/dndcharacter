@@ -1,5 +1,49 @@
 export const allSpells = [
     {
+        name: "Acid Splash",
+        level: 0,
+        school: "Evocation",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "60 feet",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "You create an acidic bubble at a point within range, where it explodes in a 5-foot-radius Sphere. Each creature in that Sphere must succeed on a Dexterity saving throw or take 1d6 Acid damage.<br><br><strong>Cantrip Upgrade.</strong> The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6)."
+    },
+    {
+        name: "Dancing Lights",
+        level: 0,
+        school: "Illusion",
+        type: "Artificer, Bard, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "120 feet",
+        components: "V, S, M (a bit of phosphorus)",
+        duration: "Concentration, up to 1 minute",
+        description: "You create up to four torch-size lights within range, making them appear as torches, lanterns, or glowing orbs that hover for the duration. Alternatively, you combine the four lights into one glowing Medium form that is vaguely humanlike. Whichever form you choose, each light sheds Dim Light in a 10-foot radius.<br><br>As a Bonus Action, you can move the lights up to 60 feet to a space within range. A light must be within 20 feet of another light created by this spell, and a light vanishes if it exceeds the spell’s range."
+    },
+    {
+        name: "Elementalism",
+        level: 0,
+        school: "Transmutation",
+        type: "Artificer, Druid, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "30 feet",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "You exert control over the elements, creating one of the following effects within range:<br>• <strong>Beckon Air.</strong> You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube.<br>• <strong>Beckon Earth.</strong> You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand.<br>• <strong>Beckon Fire.</strong> You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke’s scent lingers for 1 minute.<br>• <strong>Beckon Water.</strong> You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute.<br>• <strong>Sculpt Element.</strong> You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour."
+    },
+    {
+        name: "Fire Bolt",
+        level: 0,
+        school: "Evocation",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "120 feet",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Fire damage. A flammable object hit by this spell starts burning if it isn’t being worn or carried.<br><br><strong>Cantrip Upgrade.</strong> The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10)."
+    },
+    {
         name: "Guidance",
         level: 0,
         school: "Divination",
@@ -8,7 +52,29 @@ export const allSpells = [
         range: "Touch",
         components: "V, S",
         duration: "Concentration, up to 1 minute",
-        description: "You touch a willing creature and choose a skill. Until the spell ends, the creature adds 1d4 to any ability check using the chosen skill."
+        description: "You touch a willing creature and choose a skill. Until the spell ends, the creature adds 1d4 to any ability check using the chosen skill. A creature can benefit from this spell only once per turn."
+    },
+    {
+        name: "Light",
+        level: 0,
+        school: "Evocation",
+        type: "Artificer, Bard, Cleric, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, M (a firefly or phosphorescent moss)",
+        duration: "1 hour",
+        description: "You touch one Large or smaller object that isn’t being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like. Covering the object with something opaque blocks the light. The spell ends if you cast it again."
+    },
+    {
+        name: "Mage Hand",
+        level: 0,
+        school: "Conjuration",
+        type: "Artificer, Bard, Sorcerer, Warlock, Wizard",
+        castingTime: "1 Action",
+        range: "30 feet",
+        components: "V, S",
+        duration: "1 minute",
+        description: "A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.<br><br>When you cast the spell, you can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial.<br><br>As a Magic action on your later turns, you can control the hand thus again. As part of that action, you can move the hand up to 30 feet.<br><br>The hand can’t attack, activate magic items, or carry more than 10 pounds."
     },
     {
         name: "Mending",
@@ -22,6 +88,28 @@ export const allSpells = [
         description: "This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wine skin. As long as the break or tear is no larger than 1 foot in any dimension, you mend it, leaving no trace of the former damage."
     },
     {
+        name: "Message",
+        level: 0,
+        school: "Transmutation",
+        type: "Artificer, Bard, Druid, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "120 feet",
+        components: "S, M (a copper wire)",
+        duration: "1 round",
+        description: "You point toward a creature within range and whisper a message. The target (and only the target) hears the message and can reply in a whisper that only you can hear.<br><br>You can cast this spell through solid objects if you are familiar with the target and know it is beyond the barrier. Magical silence; 1 foot of stone, metal, or wood; or a thin sheet of lead blocks the spell."
+    },
+    {
+        name: "Poison Spray",
+        level: 0,
+        school: "Necromancy",
+        type: "Artificer, Druid, Sorcerer, Warlock, Wizard",
+        castingTime: "1 Action",
+        range: "30 feet",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d12 Poison damage.<br><br><strong>Cantrip Upgrade.</strong> The damage increases by 1d12 when you reach levels 5 (2d12), 11 (3d12), and 17 (4d12)."
+    },
+    {
         name: "Prestidigitation",
         level: 0,
         school: "Transmutation",
@@ -30,7 +118,183 @@ export const allSpells = [
         range: "10 feet",
         components: "V, S",
         duration: "Up to 1 hour",
-        description: "You create a magical effect within range. Choose the effect from the options below. If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time: Sensory Effect, Fire Play, Clean or Soil, Minor Sensation, Magic Mark, Minor Creation."
+        description: "You create a magical effect within range. Choose the effect from the options below. If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time:<br>• <strong>Sensory Effect.</strong> You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor.<br>• <strong>Fire Play.</strong> You instantaneously light or snuff out a candle, a torch, or a small campfire.<br>• <strong>Clean or Soil.</strong> You instantaneously clean or soil an object no larger than 1 cubic foot.<br>• <strong>Minor Sensation.</strong> You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.<br>• <strong>Magic Mark.</strong> You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour.<br>• <strong>Minor Creation.</strong> You create a nonmagical trinket or an illusory image that can fit in your hand. It lasts until the end of your next turn. A trinket can deal no damage and has no monetary worth."
+    },
+    {
+        name: "Ray of Frost",
+        level: 0,
+        school: "Evocation",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "60 feet",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "A frigid beam of blue-white light streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes 1d8 Cold damage, and its Speed is reduced by 10 feet until the start of your next turn.<br><br><strong>Cantrip Upgrade.</strong> The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8)."
+    },
+    {
+        name: "Resistance",
+        level: 0,
+        school: "Abjuration",
+        type: "Artificer, Cleric, Druid",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S",
+        duration: "Concentration, up to 1 minute",
+        description: "You touch a willing creature and choose a damage type: Acid, Bludgeoning, Cold, Fire, Lightning, Necrotic, Piercing, Poison, Radiant, Slashing, or Thunder. When the creature takes damage of the chosen type before the spell ends, the creature reduces the total damage taken by 1d4. A creature can benefit from this spell only once per turn."
+    },
+    {
+        name: "Shocking Grasp",
+        level: 0,
+        school: "Evocation",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "Lightning springs from you to a creature that you try to touch. Make a melee spell attack against the target. On a hit, the target takes 1d8 Lightning damage, and it can’t make Opportunity Attacks until the start of its next turn.<br><br><strong>Cantrip Upgrade.</strong> The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8)."
+    },
+    {
+        name: "Spare the Dying",
+        level: 0,
+        school: "Necromancy",
+        type: "Artificer, Cleric, Druid",
+        castingTime: "1 Action",
+        range: "15 feet",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "Choose a creature within range that has 0 Hit Points and isn’t dead. The creature becomes Stable.<br><br><strong>Cantrip Upgrade.</strong> The range doubles when you reach levels 5 (30 feet), 11 (60 feet), and 17 (120 feet)."
+    },
+    {
+        name: "Thorn Whip",
+        level: 0,
+        school: "Transmutation",
+        type: "Artificer, Druid",
+        castingTime: "1 Action",
+        range: "30 feet",
+        components: "V, S, M (the stem of a thorny plant)",
+        duration: "Instantaneous",
+        description: "You create a vine-like whip covered in thorns that lashes out at your command toward a creature in range. Make a melee spell attack against the target. On a hit, the target takes 1d6 Piercing damage, and if it is Large or smaller, you can pull it up to 10 feet closer to you.<br><br><strong>Cantrip Upgrade.</strong> The damage increases by 1d6 when you reach levels 5 (2d6), 11 (2d6), and 17 (4d6)."
+    },
+    {
+        name: "Thunderclap",
+        level: 0,
+        school: "Evocation",
+        type: "Artificer, Bard, Druid, Sorcerer, Warlock, Wizard",
+        castingTime: "1 Action",
+        range: "Self",
+        components: "S",
+        duration: "Instantaneous",
+        description: "Each creature in a 5-foot Emanation originating from you must succeed on a Constitution saving throw or take 1d6 Thunder damage. The spell’s thunderous sound can be heard up to 100 feet away.<br><br><strong>Cantrip Upgrade.</strong> The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6)."
+    },
+    {
+        name: "True Strike",
+        level: 0,
+        school: "Divination",
+        type: "Artificer, Bard, Sorcerer, Warlock, Wizard",
+        castingTime: "1 Action",
+        range: "Self",
+        components: "S, M (a weapon with which you have proficiency)",
+        duration: "Instantaneous",
+        description: "Guided by a flash of magical insight, you make one attack with the weapon used in the spell’s casting. The attack uses your spellcasting ability modifier for the attack and damage rolls instead of using Strength or Dexterity. If the attack deals damage, it can be Radiant damage or the weapon’s normal damage type (your choice).<br><br><strong>Cantrip Upgrade.</strong> The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6). This extra damage is Radiant damage."
+    },
+    {
+        name: "Alarm",
+        level: 1,
+        school: "Abjuration",
+        type: "Artificer, Ranger, Wizard",
+        castingTime: "1 minute or Ritual",
+        range: "30 feet",
+        components: "V, S, M (a bell and silver wire)",
+        duration: "8 hours",
+        description: "You set an alarm against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a creature touches or enters the warded area. When you cast the spell, you can designate creatures that won’t set off the alarm. You also choose whether the alarm is audible or mental:<br>• <strong>Audible Alarm.</strong> The alarm produces the sound of a handbell for 10 seconds within 60 feet of the warded area.<br>• <strong>Mental Alarm.</strong> You are alerted by a mental ping if you are within 1 mile of the warded area. This ping awakens you if you’re asleep."
+    },
+    {
+        name: "Cure Wounds",
+        level: 1,
+        school: "Abjuration",
+        type: "Artificer, Bard, Cleric, Druid, Paladin, Ranger",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "A creature you touch regains a number of Hit Points equal to 2d8 plus your spellcasting ability modifier.<br><br><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 2d8 for each spell slot level above 1."
+    },
+    {
+        name: "Detect Magic",
+        level: 1,
+        school: "Divination (Ritual)",
+        type: "Artificer, Bard, Cleric, Druid, Paladin, Ranger, Sorcerer, Warlock, Wizard",
+        castingTime: "1 Action or Ritual",
+        range: "Self",
+        components: "V, S",
+        duration: "Concentration, up to 10 minutes",
+        description: "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead."
+    },
+    {
+        name: "Disguise Self",
+        level: 1,
+        school: "Illusion",
+        type: "Artificer, Bard, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Self",
+        components: "V, S",
+        duration: "1 hour",
+        description: "You make yourself - including your clothing, armor, weapons, and other belongings on your person - look different until the spell ends. You can seem 1 foot shorter or taller and can appear heavier or lighter. You must adopt a form that has the same basic arrangement of limbs as you have. Otherwise, the extent of the illusion is up to you. The changes wrought by this spell fail to hold up to physical inspection. To discern that you are disguised, a creature must take the Study action to inspect your appearance and succeed on an Intelligence (Investigation) check against your spell save DC."
+    },
+    {
+        name: "Expeditious Retreat",
+        level: 1,
+        school: "Transmutation",
+        type: "Artificer, Sorcerer, Warlock, Wizard",
+        castingTime: "1 Bonus Action",
+        range: "Self",
+        components: "V, S",
+        duration: "Concentration, up to 10 minutes",
+        description: "You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action."
+    },
+    {
+        name: "Faerie Fire",
+        level: 1,
+        school: "Evocation",
+        type: "Artificer, Bard, Druid",
+        castingTime: "1 Action",
+        range: "60 feet",
+        components: "V",
+        duration: "Concentration, up to 1 minute",
+        description: "Objects in a 20-foot Cube within range are outlined in blue, green, or violet light (your choice). Each creature in the Cube is also outlined if it fails a Dexterity saving throw. For the duration, objects and affected creatures shed Dim Light in a 10-foot radius and can’t benefit from the Invisible condition. Attack rolls against an affected creature or object have Advantage if the attacker can see it."
+    },
+    {
+        name: "False Life",
+        level: 1,
+        school: "Necromancy",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Self",
+        components: "V, S, M (a drop of alcohol)",
+        duration: "Instantaneous",
+        description: "You gain 2d4 + 4 Temporary Hit Points.<br><br><strong>Using a Higher-Level Spell Slot.</strong> You gain 5 additional Temporary Hit Points for each spell slot level above 1."
+    },
+    {
+        name: "Feather Fall",
+        level: 1,
+        school: "Transmutation",
+        type: "Artificer, Bard, Sorcerer, Wizard",
+        castingTime: "Reaction",
+        range: "60 feet",
+        components: "V, M (a small feather or piece of down)",
+        duration: "1 minute",
+        description: "Choose up to five falling creatures within range. A falling creature’s rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, the creature takes no damage from the fall, and the spell ends for that creature."
+    },
+    {
+        name: "Grease",
+        level: 1,
+        school: "Conjuration",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "60 feet",
+        components: "V, S, M (a bit of pork rind or butter)",
+        duration: "1 minute",
+        description: "Slick grease covers the ground in a 10-foot square and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or fall Prone. A creature that enters the area or ends its turn there must also succeed on a Dexterity saving throw or fall Prone."
     },
     {
         name: "Heroism",
@@ -41,8 +305,63 @@ export const allSpells = [
         range: "Touch",
         components: "V, S",
         duration: "Concentration, up to 1 minute",
-        description: "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to the Frightened condition and gains Temporary Hit Points equal to your spellcasting ability modifier at the start of each of its turns. At Higher Levels: You can target one additional creature for each spell slot level above 1.",
+        description: "A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to the Frightened condition and gains Temporary Hit Points equal to your spellcasting ability modifier (5) at the start of each of its turns.<br><br><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 1.",
         alwaysPrepared: true
+    },
+    {
+        name: "Identify",
+        level: 1,
+        school: "Divination (Ritual)",
+        type: "Artificer, Bard, Wizard",
+        castingTime: "1 Minute or Ritual",
+        range: "Touch",
+        components: "V, S, M (a pearl worth at least 100 gp and an owl feather)",
+        duration: "Instantaneous",
+        description: "You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are. If the item was created by a spell, you learn which spell created it. If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it."
+    },
+    {
+        name: "Jump",
+        level: 1,
+        school: "Transmutation",
+        type: "Artificer, Druid, Ranger, Sorcerer, Wizard",
+        castingTime: "1 Bonus Action",
+        range: "Touch",
+        components: "V, S, M (a grasshopper's hind leg)",
+        duration: "1 minute",
+        description: "You touch a creature. The creature's jump distance is tripled until the spell ends."
+    },
+    {
+        name: "Longstrider",
+        level: 1,
+        school: "Transmutation",
+        type: "Artificer, Bard, Druid, Ranger, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S, M (a pinch of dirt)",
+        duration: "1 hour",
+        description: "You touch a creature. The target's Speed increases by 10 feet until the spell ends.<br><br><strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each slot level above 1."
+    },
+    {
+        name: "Purify Food and Drink",
+        level: 1,
+        school: "Transmutation (Ritual)",
+        type: "Artificer, Cleric, Druid, Paladin",
+        castingTime: "1 Action or Ritual",
+        range: "10 feet",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "All nonmagical food and drink within a 5-foot-radius sphere centered on a point of your choice within range is purified and rendered free of poison and disease."
+    },
+    {
+        name: "Sanctuary",
+        level: 1,
+        school: "Abjuration",
+        type: "Artificer, Cleric",
+        castingTime: "1 Bonus Action",
+        range: "30 feet",
+        components: "V, S, M (a small silver mirror)",
+        duration: "1 minute",
+        description: "You ward a creature within range against attack. Until the spell ends, any creature who targets the warded creature with an attack or a harmful spell must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the attack or spell. This spell doesn't protect the warded creature from area effects, such as the explosion of a fireball. If the warded creature makes an attack, casts a spell that affects an enemy, or deals damage to another creature, this spell ends."
     },
     {
         name: "Shield",
@@ -57,92 +376,235 @@ export const allSpells = [
         alwaysPrepared: true
     },
     {
-        name: "Grease",
-        level: 1,
-        school: "Conjuration",
-        type: "Artificer",
+        name: "Aid",
+        level: 2,
+        school: "Abjuration",
+        type: "Artificer, Bard, Cleric, Druid, Paladin, Ranger",
+        castingTime: "1 Action",
+        range: "30 feet",
+        components: "V, S, M (a tiny strip of white cloth)",
+        duration: "8 Hours",
+        description: "Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target's Hit Point Maximum and current Hit Points increase by 5 for the duration.<br><br><strong>Using a Higher-Level Spell Slot.</strong> The Hit Points increase by 5 for each slot level above 2nd."
+    },
+    {
+        name: "Alter Self",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Self",
+        components: "V, S",
+        duration: "Concentration, up to 1 Hour",
+        description: "You assume a different form. When you cast the spell, choose one of the following options:<br>• <strong>Aquatic Adaptation.</strong> You grow gills and can breathe underwater. Moreover, fingers and toes become webbed, giving you a Swim Speed equal to your Speed.<br>• <strong>Change Appearance.</strong> You transform your appearance. You decide what you look like, including your height, weight, facial features, sound of your voice, hair length, coloration, and distinguishing characteristics, if any. You can make yourself appear as a member of another race, though none of your statistics change. You also can’t appear as a creature of a different size than you, and your basic shape stays the same.<br>• <strong>Natural Weapons.</strong> You grow claws, fangs, spines, horns, or a different natural weapon of your choice. Your unarmed strikes deal 1d6 Bludgeoning, Piercing, or Slashing damage, as appropriate to the weapon you chose, and you are proficient with your unarmed strikes. Finally, the natural weapon is magic and you have a +1 bonus to the attack and damage rolls you make with it."
+    },
+    {
+        name: "Arcane Lock",
+        level: 2,
+        school: "Abjuration",
+        type: "Artificer, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S, M (gold dust worth at least 25 gp, consumed)",
+        duration: "Until Dispelled",
+        description: "You touch a closed door, window, gate, chest, or other entryway, and it becomes locked. You and the creatures you designate can open it normally. You can also set a password."
+    },
+    {
+        name: "Arcane Vigor",
+        level: 2,
+        school: "Abjuration",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Bonus Action",
+        range: "Self",
+        components: "V, S",
+        duration: "Instantaneous",
+        description: "You tap into your life force to heal yourself. Expend one or two of your Hit Dice. Roll the dice, add your spellcasting ability modifier to the total, and regain that many Hit Points."
+    },
+    {
+        name: "Blur",
+        level: 2,
+        school: "Illusion",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Self",
+        components: "V",
+        duration: "Concentration, up to 1 Minute",
+        description: "Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has disadvantage on attack rolls against you. An attacker is immune to this effect if it doesn’t rely on sight, as with Blindsight, or can see through illusions, as with Truesight."
+    },
+    {
+        name: "Continual Flame",
+        level: 2,
+        school: "Evocation",
+        type: "Artificer, Cleric, Druid, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S, M (ruby dust worth 50 gp, consumed)",
+        duration: "Until Dispelled",
+        description: "A flame, equivalent in brightness to a torch, springs forth from an object that you touch. The effect looks like a regular flame, but it creates no heat and doesn't use oxygen. A continual flame can be covered or hidden but not smothered or quenched."
+    },
+    {
+        name: "Darkvision",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Druid, Ranger, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S, M (either a pinch of dried carrot or an agate)",
+        duration: "8 Hours",
+        description: "You touch a willing creature to grant it the ability to see in the dark. For the duration, that creature has Darkvision out to a range of 60 feet."
+    },
+    {
+        name: "Dragon’s Breath",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Bonus Action",
+        range: "Touch",
+        components: "V, S, M (a hot pepper)",
+        duration: "Concentration, up to 1 Minute",
+        description: "You touch one willing creature and imbue it with the power to spew magical energy (acid, cold, fire, lightning, or poison) in a 15-foot cone. Each creature in that area must make a Dexterity saving throw, taking 3d6 damage on a failed save, or half as much on a successful one."
+    },
+    {
+        name: "Enhance Ability",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Bard, Cleric, Druid, Ranger, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S, M (fur or a feather from a beast)",
+        duration: "Concentration, up to 1 Hour",
+        description: "Choose Bear’s Endurance (Con advantage, 2d6 temp HP), Bull’s Strength (Str advantage, double capacity), Cat’s Grace (Dex advantage, no fall damage <= 20ft), Eagle’s Splendor (Cha advantage), Fox’s Cunning (Int advantage), or Owl’s Wisdom (Wis advantage)."
+    },
+    {
+        name: "Enlarge/Reduce",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Bard, Druid, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "30 feet",
+        components: "V, S, M (a pinch of powdered iron)",
+        duration: "Concentration, up to 1 Minute",
+        description: "You cause a creature or an object to grow larger or smaller for the duration.<br>• <strong>Enlarge.</strong> The target’s size doubles in all dimensions, and its weight is multiplied by eight. This growth increases its size by one category - from Medium to Large, for example. The target also has Advantage on Strength checks and Strength saving throws. The target’s weapons also grow to match its new size. While these weapons are enlarged, the target’s attack rolls with them deal an extra 1d4 damage.<br>• <strong>Reduce.</strong> The target’s size is halved in all dimensions, and its weight is reduced to one-eighth of normal. This reduction decreases its size by one category - from Medium to Small, for example. The target also has Disadvantage on Strength checks and Strength saving throws. The target’s weapons also shrink to match its new size. While these weapons are reduced, the target’s attack rolls with them deal 1d4 less damage (this can’t reduce the damage below 1)."
+    },
+    {
+        name: "Heat Metal",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Bard, Druid",
         castingTime: "1 Action",
         range: "60 feet",
-        components: "V, S, M (a bit of pork rind or butter)",
-        duration: "1 minute",
-        description: "Slick grease covers the ground in a 10-foot square and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or fall Prone. A creature that enters the area or ends its turn there must also succeed on a Dexterity saving throw or fall Prone."
+        components: "V, S, M (a piece of iron and a flame)",
+        duration: "Concentration, up to 1 minute",
+        description: "Choose a manufactured metal object, such as a metal weapon or a suit of Heavy or Medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes 2d8 Fire damage when you cast the spell. Until the spell ends, you can take a Bonus Action on each of your later turns to deal this damage again if the object is within range.<br><br>If a creature is holding or wearing the object and takes the damage from it, the creature must succeed on a Constitution saving throw or drop the object if it can. If it doesn’t drop the object, it has Disadvantage on attack rolls and ability checks until the start of your next turn.<br><br><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 2."
     },
     {
-        name: "Identify",
-        level: 1,
-        school: "Divination (Ritual)",
+        name: "Homunculus Servant",
+        level: 2,
+        school: "Conjuration",
         type: "Artificer",
-        castingTime: "1 Minute (or Ritual)",
-        range: "Touch",
-        components: "V, S, M (a pearl worth at least 100 gp and an owl feather)",
-        duration: "Instantaneous",
-        description: "You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are. If the item was created by a spell, you learn which spell created it. If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it."
-    },
-    {
-        name: "Jump",
-        level: 1,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (a grasshopper's hind leg)",
-        duration: "1 minute",
-        description: "You touch a creature. The creature's jump distance is tripled until the spell ends."
-    },
-    {
-        name: "Longstrider",
-        level: 1,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (a pinch of dirt)",
-        duration: "1 hour",
-        description: "You touch a creature. The target's Speed increases by 10 feet until the spell ends. At Higher Levels: You can target one additional creature for each slot level above 1."
-    },
-    {
-        name: "Purify Food and Drink",
-        level: 1,
-        school: "Transmutation (Ritual)",
-        type: "Artificer",
-        castingTime: "1 Action (or Ritual)",
+        castingTime: "1 hour or Ritual",
         range: "10 feet",
+        components: "V, S, M (a gem worth 100+ GP)",
+        duration: "Instantaneous",
+        description: "You summon a special homunculus in an unoccupied space within range. This creature uses the Homunculus Servant stat block. If you already have a homunculus from this spell, the homunculus is replaced by the new one.<br><br><strong>Combat.</strong> The homunculus is an ally to you and your allies. In combat, it shares your Initiative count, but it takes its turn immediately after yours. It obeys your commands (no action required by you). If you don’t issue any, it takes the Dodge action.<br><br><strong>Force Strike.</strong> Melee or Ranged Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. or range 30 ft. Hit: 1d6 + PB Force damage."
+    },
+    {
+        name: "Invisibility",
+        level: 2,
+        school: "Illusion",
+        type: "Artificer, Bard, Sorcerer, Warlock, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S, M (an eyelash encased in gum arabic)",
+        duration: "Concentration, up to 1 Hour",
+        description: "A creature you touch becomes invisible until the spell ends. Anything the target is wearing or carrying is invisible as long as it is on the target's person. The spell ends for a target that attacks or casts a spell."
+    },
+    {
+        name: "Kinetic Jaunt",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer (Non-2024)",
+        castingTime: "1 Bonus Action",
+        range: "Self",
+        components: "S",
+        duration: "Concentration, up to 1 Minute",
+        description: "You magically empower your movement. Your Speed increases by 10 feet, and your movement doesn't provoke Opportunity Attacks."
+    },
+    {
+        name: "Lesser Restoration",
+        level: 2,
+        school: "Abjuration",
+        type: "Artificer, Bard, Cleric, Druid, Paladin, Ranger",
+        castingTime: "1 Bonus Action",
+        range: "Touch",
         components: "V, S",
         duration: "Instantaneous",
-        description: "All nonmagical food and drink within a 5-foot-radius sphere centered on a point of your choice within range is purified and rendered free of poison and disease."
+        description: "You touch a creature and can end either one disease or one condition afflicting it. The condition can be Blinded, Deafened, Paralyzed, or Poisoned."
     },
     {
-        name: "Sanctuary",
-        level: 1,
-        school: "Abjuration",
-        type: "Artificer",
-        castingTime: "1 Bonus Action",
-        range: "30 feet",
-        components: "V, S, M (a small silver mirror)",
-        duration: "1 minute",
-        description: "You ward a creature within range against attack. Until the spell ends, any creature who targets the warded creature with an attack or a harmful spell must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the attack or spell. This spell doesn't protect the warded creature from area effects, such as the explosion of a fireball. If the warded creature makes an attack, casts a spell that affects an enemy, or deals damage to another creature, this spell ends."
-    },
-    {
-        name: "Detect Magic",
-        level: 1,
-        school: "Divination (Ritual)",
-        type: "Artificer",
-        castingTime: "1 Action or Ritual",
-        range: "Self",
-        components: "V, S",
-        duration: "Concentration, up to 10 minutes",
-        description: "For the duration, you sense the presence of magical effects within 30 feet of yourself. If you sense such effects, you can take the Magic action to see a faint aura around any visible creature or object in the area that bears the magic, and if an effect was created by a spell, you learn the spell's school of magic. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead."
-    },
-    {
-        name: "Expeditious Retreat",
-        level: 1,
+        name: "Levitate",
+        level: 2,
         school: "Transmutation",
-        type: "Artificer",
+        type: "Artificer, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "60 feet",
+        components: "V, S, M (a small leather loop or a piece of golden wire)",
+        duration: "Concentration, up to 10 Minutes",
+        description: "One creature or object of your choice that you can see within range rises vertically, up to 20 feet, and remains suspended there for the duration. The spell can levy a target that weighs up to 500 pounds. An unwilling creature must succeed on a Constitution saving throw to avoid the effect."
+    },
+    {
+        name: "Magic Mouth",
+        level: 2,
+        school: "Illusion (Ritual)",
+        type: "Artificer, Bard, Wizard",
+        castingTime: "1 Minute or Ritual",
+        range: "30 feet",
+        components: "V, S, M (a small bit of honeycomb and jade dust worth at least 10 gp, which the spell consumes)",
+        duration: "Until Dispelled",
+        description: "You implant a message within an object in range, a message that is uttered when a trigger condition is met. The object must not be worn or carried by another creature."
+    },
+    {
+        name: "Magic Weapon",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Paladin, Ranger, Sorcerer, Wizard",
         castingTime: "1 Bonus Action",
-        range: "Self",
+        range: "Touch",
         components: "V, S",
-        duration: "Concentration, up to 10 minutes",
-        description: "You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action."
+        duration: "1 Hour",
+        description: "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls."
+    },
+    {
+        name: "Protection from Poison",
+        level: 2,
+        school: "Abjuration",
+        type: "Artificer, Cleric, Druid, Paladin, Ranger",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S",
+        duration: "1 Hour",
+        description: "You touch a creature. If it is Poisoned, you neutralize the poison. For the duration, the target has advantage on saving throws against being Poisoned, and it has Resistance to Poison damage."
+    },
+    {
+        name: "Rope Trick",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S, M (powdered corn extract and a twisted loop of parchment)",
+        duration: "1 Hour",
+        description: "You touch a length of rope that is up to 60 feet long. One end of the rope then rises into the air until the whole rope hangs perpendicular to the ground. At the upper end of the rope, an invisible entrance opens to an extradimensional space. The space can hold as many as eight Medium or smaller creatures."
+    },
+    {
+        name: "See Invisibility",
+        level: 2,
+        school: "Divination",
+        type: "Artificer, Bard, Sorcerer, Wizard",
+        castingTime: "1 Action",
+        range: "Self",
+        components: "V, S, M (a pinch of talc and a small sprinkling of powdered silver)",
+        duration: "1 Hour",
+        description: "For the duration, you see Invisible creatures and objects as if they were visible, and you can see into the Ethereal Plane. Ethereal creatures and objects appear ghostly and translucent."
     },
     {
         name: "Shining Smite",
@@ -153,8 +615,19 @@ export const allSpells = [
         range: "Self",
         components: "V",
         duration: "Concentration, up to 1 minute",
-        description: "The target hit by the strike takes an extra 2d6 Radiant damage from the attack. Until the spell ends, the target sheds Bright Light in a 5-foot radius, attack rolls against it have Advantage, and it can’t benefit from the Invisible condition. At Higher Levels: The damage increases by 1d6 for each spell slot level above 2.",
+        description: "The target hit by the strike takes an extra 2d6 Radiant damage from the attack. Until the spell ends, the target sheds Bright Light in a 5-foot radius, attack rolls against it have Advantage, and it can’t benefit from the Invisible condition.<br><br><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d6 for each spell slot level above 2.",
         alwaysPrepared: true
+    },
+    {
+        name: "Spider Climb",
+        level: 2,
+        school: "Transmutation",
+        type: "Artificer, Sorcerer, Warlock, Wizard",
+        castingTime: "1 Action",
+        range: "Touch",
+        components: "V, S, M (a drop of bitumen and a spider)",
+        duration: "Concentration, up to 1 Hour",
+        description: "Until the spell ends, one willing creature you touch gains the ability to move up, down, and across vertical surfaces and upside down along ceilings, while leaving its hands free. The target also gains a Climb Speed equal to its Speed."
     },
     {
         name: "Warding Bond",
@@ -169,234 +642,14 @@ export const allSpells = [
         alwaysPrepared: true
     },
     {
-        name: "Aid",
-        level: 2,
-        school: "Abjuration",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "30 feet",
-        components: "V, S, M (a tiny strip of white cloth)",
-        duration: "8 Hours",
-        description: "Your spell bolsters your allies with toughness and resolve. Choose up to three creatures within range. Each target's Hit Point Maximum and current Hit Points increase by 5 for the duration. At Higher Levels: The Hit Points increase by 5 for each slot level above 2nd."
-    },
-    {
-        name: "Alter Self",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Self",
-        components: "V, S",
-        duration: "Concentration, up to 1 Hour",
-        description: "You assume a different form. Options: Aquatic Adaptation (breathe underwater, swim speed), Change Appearance (transform appearance), Natural Weapons (grow claws/fangs/etc, 1d6 damage)."
-    },
-    {
-        name: "Arcane Lock",
-        level: 2,
-        school: "Abjuration",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (gold dust worth at least 25 gp, consumed)",
-        duration: "Until Dispelled",
-        description: "You touch a closed door, window, gate, chest, or other entryway, and it becomes locked. You and the creatures you designate can open it normally. You can also set a password."
-    },
-    {
-        name: "Arcane Vigor",
-        level: 2,
-        school: "Abjuration",
-        type: "Artificer",
-        castingTime: "1 Bonus Action",
-        range: "Self",
-        components: "V, S",
-        duration: "Instantaneous",
-        description: "You tap into your life force to heal yourself. Expend one or two of your Hit Dice. Roll the dice, add your spellcasting ability modifier to the total, and regain that many Hit Points."
-    },
-    {
-        name: "Blur",
-        level: 2,
-        school: "Illusion",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Self",
-        components: "V",
-        duration: "Concentration, up to 1 Minute",
-        description: "Your body becomes blurred, shifting and wavering to all who can see you. For the duration, any creature has disadvantage on attack rolls against you."
-    },
-    {
-        name: "Continual Flame",
-        level: 2,
-        school: "Evocation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (ruby dust worth 50 gp, consumed)",
-        duration: "Until Dispelled",
-        description: "A flame, equivalent in brightness to a torch, springs forth from an object that you touch. The effect looks like a regular flame, but it creates no heat and doesn't use oxygen."
-    },
-    {
-        name: "Darkvision",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (either a pinch of dried carrot or an agate)",
-        duration: "8 Hours",
-        description: "You touch a willing creature to grant it the ability to see in the dark. For the duration, that creature has Darkvision out to a range of 60 feet."
-    },
-    {
-        name: "Dragon’s Breath",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Bonus Action",
-        range: "Touch",
-        components: "V, S, M (a hot pepper)",
-        duration: "Concentration, up to 1 Minute",
-        description: "You touch one willing creature and imbue it with the power to spew magical energy (acid, cold, fire, lightning, or poison) in a 15-foot cone. Each creature in that area must make a Dexterity saving throw, taking 3d6 damage on a failed save, or half as much on a successful one."
-    },
-    {
-        name: "Enhance Ability",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (fur or a feather from a beast)",
-        duration: "Concentration, up to 1 Hour",
-        description: "Choose Bear’s Endurance (Con advantage, 2d6 temp HP), Bull’s Strength (Str advantage, double capacity), Cat’s Grace (Dex advantage, no fall damage <= 20ft), Eagle’s Splendor (Cha advantage), Fox’s Cunning (Int advantage), or Owl’s Wisdom (Wis advantage)."
-    },
-    {
-        name: "Enlarge/Reduce",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "30 feet",
-        components: "V, S, M (a pinch of powdered iron)",
-        duration: "Concentration, up to 1 Minute",
-        description: "You cause a creature or an object to grow larger or smaller for the duration."
-    },
-    {
-        name: "Invisibility",
-        level: 2,
-        school: "Illusion",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (an eyelash encased in gum arabic)",
-        duration: "Concentration, up to 1 Hour",
-        description: "A creature you touch becomes invisible until the spell ends. Anything the target is wearing or carrying is invisible as long as it is on the target's person. The spell ends for a target that attacks or casts a spell."
-    },
-    {
-        name: "Kinetic Jaunt",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Bonus Action",
-        range: "Self",
-        components: "S",
-        duration: "Concentration, up to 1 Minute",
-        description: "You magically empower your movement. Your Speed increases by 10 feet, and your movement doesn't provoke Opportunity Attacks."
-    },
-    {
-        name: "Lesser Restoration",
-        level: 2,
-        school: "Abjuration",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S",
-        duration: "Instantaneous",
-        description: "You touch a creature and can end either one disease or one condition afflicting it. The condition can be Blinded, Deafened, Paralyzed, or Poisoned."
-    },
-    {
-        name: "Levitate",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "60 feet",
-        components: "V, S, M (a small leather loop or a piece of golden wire bent into a cup shape with a long shank on one end)",
-        duration: "Concentration, up to 10 Minutes",
-        description: "One creature or object of your choice that you can see within range rises vertically, up to 20 feet, and remains suspended there for the duration."
-    },
-    {
-        name: "Magic Mouth",
-        level: 2,
-        school: "Illusion (Ritual)",
-        type: "Artificer",
-        castingTime: "1 Minute (or Ritual)",
-        range: "30 feet",
-        components: "V, S, M (a small bit of honeycomb and jade dust worth at least 10 gp, which the spell consumes)",
-        duration: "Until Dispelled",
-        description: "You implant a message within an object in range, a message that is uttered when a trigger condition is met."
-    },
-    {
-        name: "Magic Weapon",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Bonus Action",
-        range: "Touch",
-        components: "V, S",
-        duration: "Concentration, up to 1 Hour",
-        description: "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls."
-    },
-    {
-        name: "Protection from Poison",
-        level: 2,
-        school: "Abjuration",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S",
-        duration: "1 Hour",
-        description: "You touch a creature. If it is Poisoned, you neutralize the poison. For the duration, the target has advantage on saving throws against being Poisoned, and it has Resistance to Poison damage."
-    },
-    {
-        name: "Rope Trick",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (powdered corn extract and a twisted loop of parchment)",
-        duration: "1 Hour",
-        description: "You touch a length of rope that is up to 60 feet long. One end of the rope then rises into the air until the whole rope hangs perpendicular to the ground. At the upper end of the rope, an invisible entrance opens to an extradimensional space."
-    },
-    {
-        name: "See Invisibility",
-        level: 2,
-        school: "Divination",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Self",
-        components: "V, S, M (a pinch of talc and a small sprinkling of powdered silver)",
-        duration: "1 Hour",
-        description: "For the duration, you see Invisible creatures and objects as if they were visible, and you can see into the Ethereal Plane."
-    },
-    {
-        name: "Spider Climb",
-        level: 2,
-        school: "Transmutation",
-        type: "Artificer",
-        castingTime: "1 Action",
-        range: "Touch",
-        components: "V, S, M (a drop of bitumen and a spider)",
-        duration: "Concentration, up to 1 Hour",
-        description: "Until the spell ends, one willing creature you touch gains the ability to move up, down, and across vertical surfaces and upside down along ceilings."
-    },
-    {
         name: "Web",
         level: 2,
         school: "Conjuration",
-        type: "Artificer",
+        type: "Artificer, Sorcerer, Wizard",
         castingTime: "1 Action",
         range: "60 feet",
         components: "V, S, M (a bit of spiderweb)",
         duration: "Concentration, up to 1 Hour",
-        description: "You conjure a mass of thick, sticky webbing at a point of your choice within range. The webs are difficult terrain and lightly obscure their area. Each creature that starts its turn in the webs must make a Dexterity saving throw or be Restrained."
+        description: "You conjure a mass of thick, sticky webbing at a point of your choice within range. The webs are difficult terrain and lightly obscure their area. Each creature that starts its turn in the webs or enters them during its turn must make a Dexterity saving throw. On a failed save, the creature is Restrained as long as it remains in the webs or until it breaks free. A creature restrained by the webs can use its action to make a Strength check against your spell save DC. If it succeeds, it is no longer restrained."
     }
 ];
