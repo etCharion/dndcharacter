@@ -1,0 +1,284 @@
+:root {
+    --bg-color: #121212;
+    --panel-bg: #1e1e1e;
+    --accent-color: #ff6600;
+    --accent-glow: rgba(255, 102, 0, 0.3);
+    --text-color: #e0e0e0;
+    --muted-text: #888;
+    --border-color: #333;
+    --neon-cyan: #00f2ff;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body.punk-theme {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+h1, h2, h3 {
+    color: var(--accent-color);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 15px;
+}
+
+.main-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--accent-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px var(--accent-glow);
+}
+
+.vitals-bar {
+    display: flex;
+    gap: 20px;
+}
+
+.vital-item {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px 20px;
+    text-align: center;
+    clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+
+.vital-item label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted-text);
+}
+
+.vital-item input {
+    background: transparent;
+    border: none;
+    color: var(--accent-color);
+    font-size: 1.2rem;
+    font-weight: bold;
+    width: 50px;
+    text-align: center;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 20px;
+}
+
+.panel {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.panel::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid var(--accent-color);
+    border-left: 2px solid var(--accent-color);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.stat-box {
+    text-align: center;
+    border: 1px solid #444;
+    padding: 10px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--neon-cyan);
+}
+
+.stat-mod {
+    font-size: 1rem;
+    color: var(--accent-color);
+}
+
+.skills-list {
+    font-size: 0.9rem;
+}
+
+.skill-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px solid #222;
+}
+
+.skill-row.proficient {
+    color: var(--accent-color);
+}
+
+.tab-nav {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px 20px;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.tab-btn.active {
+    background: var(--accent-color);
+    color: black;
+    font-weight: bold;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.feature-card, .spell-card {
+    background: #252525;
+    border-left: 4px solid #444;
+    padding: 15px;
+    margin-bottom: 10px;
+    transition: border-left 0.3s;
+}
+
+.spell-card.prepared {
+    border-left: 4px solid var(--accent-color);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.card-details {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #333;
+    font-size: 0.9rem;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.uses-tracker {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.use-box {
+    width: 15px;
+    height: 15px;
+    border: 1px solid var(--accent-color);
+    cursor: pointer;
+}
+
+.use-box.filled {
+    background: var(--accent-color);
+}
+
+.spell-slots-container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    background: #222;
+    padding: 15px;
+}
+
+.slot-row {
+    text-align: center;
+}
+
+.slot-boxes {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.punk-btn {
+    background: transparent;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    padding: 8px 15px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s;
+}
+
+.punk-btn:hover {
+    background: var(--accent-color);
+    color: black;
+}
+
+.filter-bar {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.filter-bar input, .filter-bar select {
+    background: #222;
+    border: 1px solid #444;
+    color: white;
+    padding: 5px 10px;
+}
+
+.currency-bar {
+    background: #222;
+    padding: 10px;
+    margin: 15px 0;
+    border: 1px dashed var(--accent-color);
+}
+
+.coin-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #444;
+    color: var(--accent-color);
+    width: 60px;
+    margin-right: 15px;
+}
+
+.atk-edit-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #555;
+    color: var(--neon-cyan);
+    font-size: 1rem;
+    width: 40px;
+    text-align: center;
+}
+
+.atk-edit-input.wide {
+    width: 80px;
+}
