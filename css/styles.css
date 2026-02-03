@@ -83,13 +83,18 @@ header {
     gap: 10px;
 }
 
-.feature-item, .spell-item {
+.feature-item, .spell-item, .spell-item-all {
     background: var(--panel-bg);
     padding: 10px;
     border-left: 4px solid var(--neon-cyan);
 }
 
-.feature-header, .spell-item > div { cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.feature-header, .spell-item > div, .spell-item-all > div { cursor: pointer; }
+.feature-header { display: flex; justify-content: space-between; align-items: center; }
+.spell-header { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
+.spell-preview { font-size: 0.8rem; color: var(--muted-text); flex-grow: 1; }
+.spell-actions { display: flex; gap: 5px; }
+
 .feature-body, .spell-desc { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
 
 .hidden { display: none; }

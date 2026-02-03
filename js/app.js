@@ -164,14 +164,25 @@ function renderSpells(filter = '') {
         if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase())) return;
         const sDiv = document.createElement('div');
         sDiv.className = 'spell-item';
-        const unprepareBtn = spell.alwaysPrepared ? '' : `<button onclick="event.stopPropagation(); unprepareSpell(${idx})">Unprepare</button>`;
+
+        const comps = spell.components ? spell.components.split('(')[0].trim() : '';
+        const previewInfo = `Lvl ${spell.level} | ${spell.castingTime} | ${spell.range} | ${spell.duration} | ${comps}`;
+
+        const castBtn = spell.level > 0 ? `<button onclick="event.stopPropagation(); castSpell(${idx})">Cast</button>` : '';
+        const unprepareBtn = (spell.alwaysPrepared || spell.level === 0) ? '' : `<button onclick="event.stopPropagation(); unprepareSpell(${idx})">Unprepare</button>`;
+
         sDiv.innerHTML = `
             <div onclick="this.querySelector('.spell-desc').classList.toggle('hidden')">
-                <strong>${spell.name}</strong> (Lvl ${spell.level}) - ${spell.type}
-                <button onclick="event.stopPropagation(); castSpell(${idx})">Cast</button>
-                ${unprepareBtn}
+                <div class="spell-header">
+                    <strong>${spell.name}</strong>
+                    <span class="spell-preview">${previewInfo}</span>
+                    <div class="spell-actions">
+                        ${castBtn}
+                        ${unprepareBtn}
+                    </div>
+                </div>
                 <div class="spell-desc hidden">
-                    <div><em>${spell.school || ''} | ${spell.castingTime || ''} | ${spell.range || ''} | ${spell.duration || ''}</em></div>
+                    <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
                     ${spell.description || 'No description.'}
                 </div>
             </div>
@@ -187,9 +198,22 @@ function renderSpells(filter = '') {
         if (isPrepared) return;
         const sDiv = document.createElement('div');
         sDiv.className = 'spell-item-all';
+
+        const comps = spell.components ? spell.components.split('(')[0].trim() : '';
+        const previewInfo = `Lvl ${spell.level} | ${spell.castingTime} | ${spell.range} | ${spell.duration} | ${comps}`;
+
         sDiv.innerHTML = `
-            <span>${spell.name} (Lvl ${spell.level})</span>
-            <button onclick="prepareSpell(${idx})">Prepare</button>
+            <div onclick="this.querySelector('.spell-desc').classList.toggle('hidden')">
+                <div class="spell-header">
+                    <strong>${spell.name}</strong>
+                    <span class="spell-preview">${previewInfo}</span>
+                    <button onclick="event.stopPropagation(); prepareSpell(${idx})">Prepare</button>
+                </div>
+                <div class="spell-desc hidden">
+                    <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
+                    ${spell.description || 'No description.'}
+                </div>
+            </div>
         `;
         allSpellsDiv.appendChild(sDiv);
     });
