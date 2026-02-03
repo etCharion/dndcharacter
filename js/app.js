@@ -2,9 +2,12 @@ import { characterData } from '../data/character.js';
 
 let state = JSON.parse(localStorage.getItem('dnd_char_state')) || { ...characterData };
 
-// Ensure new structure elements exist
+// Ensure new structure elements exist and master lists are up to date
 if (!state.plans) state.plans = characterData.plans;
-if (!state.spells.all) state.spells.all = characterData.spells.all;
+state.plans.all = characterData.plans.all;
+
+if (!state.spells) state.spells = characterData.spells;
+state.spells.all = characterData.spells.all;
 if (state.initiative === undefined) state.initiative = characterData.initiative || 0;
 if (state.speed === undefined) state.speed = characterData.speed || 30;
 if (state.spellSaveDC === undefined) state.spellSaveDC = characterData.spellSaveDC || 8;
@@ -555,30 +558,56 @@ function renderPlans(filter = '') {
         if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
         const pDiv = document.createElement('div');
         pDiv.className = 'spell-item';
+
+        const rarityInfo = plan.rarity ? `(${plan.rarity})` : '';
+        const levelInfo = plan.level ? `Lvl ${plan.level}` : '';
+
         pDiv.innerHTML = `
             <div onclick="this.querySelector('.plan-desc').classList.toggle('hidden')">
-                <strong>${plan.name}</strong> (${plan.rarity})
-                <button onclick="event.stopPropagation(); unpreparePlan(${idx})">Remove</button>
+                <div class="spell-header">
+                    <strong class="editable" data-field="plans.prepared.${idx}.name">${plan.name}</strong>
+                    <span class="spell-preview">${levelInfo} | ${rarityInfo}</span>
+                    <button onclick="event.stopPropagation(); unpreparePlan(${idx})">Remove</button>
+                </div>
                 <div class="plan-desc hidden">
                     <div><em>${plan.type}</em></div>
-                    ${plan.description}
+                    <div class="editable" data-field="plans.prepared.${idx}.description">${plan.description}</div>
                 </div>
             </div>
         `;
         preparedDiv.appendChild(pDiv);
+    });
+    preparedDiv.querySelectorAll('.editable').forEach(el => {
+        attachInlineEdit(el, el.dataset.field);
     });
 
     const allPlansDiv = document.getElementById('all-plans-list');
     allPlansDiv.innerHTML = '<h3>All Magic Item Plans</h3>';
     state.plans.all.forEach((plan, idx) => {
         if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
+
+        // Only skip if it's already prepared AND it's NOT a "Common magic item"
         const isPrepared = state.plans.prepared.some(p => p.name === plan.name);
-        if (isPrepared) return;
+        if (isPrepared && plan.name !== "Common magic item") return;
+
         const pDiv = document.createElement('div');
         pDiv.className = 'spell-item-all';
+
+        const rarityInfo = plan.rarity ? `(${plan.rarity})` : '';
+        const levelInfo = plan.level ? `Lvl ${plan.level}` : '';
+
         pDiv.innerHTML = `
-            <span>${plan.name} (Lvl ${plan.level || ''})</span>
-            <button onclick="preparePlan(${idx})">Select</button>
+            <div onclick="this.querySelector('.plan-desc').classList.toggle('hidden')">
+                <div class="spell-header">
+                    <strong>${plan.name}</strong>
+                    <span class="spell-preview">${levelInfo} | ${rarityInfo}</span>
+                    <button onclick="event.stopPropagation(); preparePlan(${idx})">Select</button>
+                </div>
+                <div class="plan-desc hidden">
+                    <div><em>${plan.type}</em></div>
+                    ${plan.description}
+                </div>
+            </div>
         `;
         allPlansDiv.appendChild(pDiv);
     });
@@ -590,7 +619,7 @@ window.filterPlans = () => {
 };
 
 window.preparePlan = (idx) => {
-    state.plans.prepared.push(state.plans.all[idx]);
+    state.plans.prepared.push({ ...state.plans.all[idx] });
     saveState();
     renderAll();
 };
