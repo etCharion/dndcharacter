@@ -5,6 +5,10 @@ let state = JSON.parse(localStorage.getItem('dnd_char_state')) || { ...character
 // Ensure new structure elements exist
 if (!state.plans) state.plans = characterData.plans;
 if (!state.spells.all) state.spells.all = characterData.spells.all;
+if (state.initiative === undefined) state.initiative = characterData.initiative || 0;
+if (state.speed === undefined) state.speed = characterData.speed || 30;
+if (state.spellSaveDC === undefined) state.spellSaveDC = characterData.spellSaveDC || 8;
+if (state.spellAttackBonus === undefined) state.spellAttackBonus = characterData.spellAttackBonus || 0;
 
 function saveState() {
     localStorage.setItem('dnd_char_state', JSON.stringify(state));
@@ -25,6 +29,7 @@ function setupEventListeners() {
         handleLongRest();
         renderAll();
     });
+    attachInlineEdit(document.getElementById('char-name'), 'name');
 }
 
 function handleShortRest() {
@@ -67,31 +72,189 @@ function renderTabs() {
 }
 
 function renderStats() {
-    document.getElementById('char-name').innerText = state.name;
-    const statsDiv = document.getElementById('stats-grid');
-    statsDiv.innerHTML = '';
-    for (let stat in state.stats) {
+    // Character Name
+    const nameEl = document.getElementById('char-name');
+    nameEl.innerText = state.name;
+
+    // Header Info Bar
+    const headerInfo = document.getElementById('header-info');
+    headerInfo.innerHTML = `
+        <span>Race: <strong class="editable" data-field="race">${state.race}</strong></span>
+        <span>Background: <strong class="editable" data-field="background">${state.background}</strong></span>
+        <span>Level: <strong class="editable" data-field="level" data-type="number">${state.level}</strong></span>
+    `;
+    headerInfo.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field, el.dataset.type === 'number'));
+
+    // Compact Stats Bar (Attributes + Saves)
+    const compactStats = document.getElementById('compact-stats');
+    compactStats.innerHTML = '';
+    const statsList = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+    statsList.forEach(stat => {
         const val = state.stats[stat];
         const mod = Math.floor((val - 10) / 2);
-        const card = document.createElement('div');
-        card.className = 'stat-card';
-        card.innerHTML = `
-            <div class="stat-name">${stat.toUpperCase()}</div>
-            <div class="stat-value">${val}</div>
-            <div class="stat-mod">${mod >= 0 ? '+' : ''}${mod}</div>
+        const isProficient = state.savingThrows.includes(stat);
+        const saveMod = mod + (isProficient ? state.proficiencyBonus : 0);
+
+        const div = document.createElement('div');
+        div.className = 'stat-item';
+        div.innerHTML = `
+            <span class="label">${stat}</span>
+            <span class="value editable" data-field="stats.${stat}" data-type="number">${val}</span>
+            <span class="sub-value proficiency-toggle ${isProficient ? 'proficient' : ''}" onclick="toggleSavingThrow('${stat}')">Save: ${saveMod >= 0 ? '+' : ''}${saveMod}</span>
         `;
+        compactStats.appendChild(div);
+    });
+    compactStats.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field, true));
+
+    // Combat Essentials
+    const combatEssentials = document.getElementById('combat-essentials');
+    combatEssentials.innerHTML = `
+        <div class="essential-item">
+            <span class="label">HP</span>
+            <span class="value"><span class="editable" data-field="hp.current" data-type="number">${state.hp.current}</span> / <span class="editable" data-field="hp.max" data-type="number">${state.hp.max}</span></span>
+        </div>
+        <div class="essential-item">
+            <span class="label">AC</span>
+            <span class="value editable" data-field="ac" data-type="number">${state.ac}</span>
+        </div>
+        <div class="essential-item">
+            <span class="label">Initiative</span>
+            <span class="value editable" data-field="initiative" data-type="number">${state.initiative >= 0 ? '+' : ''}${state.initiative}</span>
+        </div>
+        <div class="essential-item">
+            <span class="label">Speed</span>
+            <span class="value editable" data-field="speed" data-type="number">${state.speed}</span>
+        </div>
+        <div class="essential-item">
+            <span class="label">Proficiency</span>
+            <span class="value">+${state.proficiencyBonus}</span>
+        </div>
+        <div class="essential-item">
+            <span class="label">Spell DC</span>
+            <span class="value editable" data-field="spellSaveDC" data-type="number">${state.spellSaveDC}</span>
+        </div>
+        <div class="essential-item">
+            <span class="label">Spell Attack</span>
+            <span class="value editable" data-field="spellAttackBonus" data-type="number">+${state.spellAttackBonus}</span>
+        </div>
+        <div class="essential-item">
+            <span class="label">Passive Perc.</span>
+            <span class="value editable" data-field="skills.perception.passive" data-type="number">${state.skills.perception.passive}</span>
+        </div>
+    `;
+    combatEssentials.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field, true));
+
+    // Main Stats Grid (Detailed skills/checks can go here)
+    const statsDiv = document.getElementById('stats-grid');
+    statsDiv.innerHTML = '';
+
+    // Skills
+    for (let skill in state.skills) {
+        const s = state.skills[skill];
+        const ability = getAbilityForSkill(skill);
+        const mod = Math.floor((state.stats[ability] - 10) / 2);
+        const total = mod + (s.proficient ? state.proficiencyBonus : 0) + (s.expert ? state.proficiencyBonus : 0);
+
+        const card = document.createElement('div');
+        card.className = `stat-card ${s.proficient ? 'proficient' : ''}`;
+        card.innerHTML = `
+            <div class="stat-name">${skill.replace(/([A-Z])/g, ' $1').toUpperCase()}</div>
+            <div class="stat-value">${total >= 0 ? '+' : ''}${total}</div>
+            <div class="stat-mod">${ability.toUpperCase()}</div>
+        `;
+        card.onclick = () => toggleSkillProficiency(skill);
         statsDiv.appendChild(card);
     }
+}
 
-    const basicInfo = document.getElementById('basic-info');
-    basicInfo.innerHTML = `
-        <div class="info-item"><span>Race:</span> <strong>${state.race}</strong></div>
-        <div class="info-item"><span>Background:</span> <strong>${state.background}</strong></div>
-        <div class="info-item"><span>Level:</span> <strong>${state.level}</strong></div>
-        <div class="info-item"><span>HP:</span> <strong>${state.hp.current} / ${state.hp.max}</strong></div>
-        <div class="info-item"><span>AC:</span> <strong>${state.ac}</strong></div>
-        <div class="info-item"><span>Proficiency:</span> <strong>+${state.proficiencyBonus}</strong></div>
-    `;
+window.toggleSkillProficiency = (skill) => {
+    state.skills[skill].proficient = !state.skills[skill].proficient;
+    saveState();
+    renderAll();
+};
+
+function getAbilityForSkill(skill) {
+    const mapping = {
+        animalHandling: 'wis',
+        persuasion: 'cha',
+        perception: 'wis',
+        investigation: 'int',
+        athletics: 'str',
+        acrobatics: 'dex',
+        sleightOfHand: 'dex',
+        stealth: 'dex',
+        arcana: 'int',
+        history: 'int',
+        nature: 'int',
+        religion: 'int',
+        insight: 'wis',
+        medicine: 'wis',
+        survival: 'wis',
+        deception: 'cha',
+        intimidation: 'cha',
+        performance: 'cha'
+    };
+    return mapping[skill] || 'int';
+}
+
+function attachInlineEdit(element, field, isNumeric = false) {
+    element.addEventListener('click', () => {
+        if (element.querySelector('input')) return;
+
+        const originalValue = element.innerText.replace('+', '').split('/')[0].trim();
+        const input = document.createElement('input');
+        input.type = isNumeric ? 'number' : 'text';
+        input.value = originalValue;
+        input.className = 'inline-edit';
+
+        const oldContent = element.innerHTML;
+        element.innerHTML = '';
+        element.appendChild(input);
+        input.focus();
+        input.select();
+
+        const save = () => {
+            let newValue = input.value;
+            if (isNumeric) newValue = parseInt(newValue) || 0;
+            updateStateByPath(field, newValue);
+            renderAll();
+        };
+
+        input.addEventListener('blur', save);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') save();
+            if (e.key === 'Escape') {
+                element.innerHTML = oldContent;
+                renderAll();
+            }
+        });
+    });
+}
+
+window.toggleSavingThrow = (stat) => {
+    const idx = state.savingThrows.indexOf(stat);
+    if (idx > -1) {
+        state.savingThrows.splice(idx, 1);
+    } else {
+        state.savingThrows.push(stat);
+    }
+    saveState();
+    renderAll();
+};
+
+function updateStateByPath(path, value) {
+    const parts = path.split('.');
+    let current = state;
+    for (let i = 0; i < parts.length - 1; i++) {
+        current = current[parts[i]];
+    }
+    current[parts[parts.length - 1]] = value;
+
+    if (path === 'level') {
+        state.proficiencyBonus = Math.floor((state.level - 1) / 4) + 2;
+    }
+
+    saveState();
 }
 
 function renderFeatures(filter = '') {
@@ -362,54 +525,6 @@ window.filterSpells = () => {
     renderSpells(val);
 };
 
-window.toggleEditStats = () => {
-    const form = document.getElementById('edit-stats-form');
-    if (form.style.display === 'none') {
-        form.style.display = 'block';
-        form.innerHTML = `
-            Name: <input type="text" value="${state.name}" onchange="updateStateString('name', this.value)"><br>
-            Level: <input type="number" value="${state.level}" onchange="updateState('level', this.value)"><br>
-            Max HP: <input type="number" value="${state.hp.max}" onchange="updateHP('max', this.value)"><br>
-            Current HP: <input type="number" value="${state.hp.current}" onchange="updateHP('current', this.value)"><br>
-            AC: <input type="number" value="${state.ac}" onchange="updateState('ac', this.value)"><br>
-            STR: <input type="number" value="${state.stats.str}" onchange="updateStat('str', this.value)"><br>
-            INT: <input type="number" value="${state.stats.int}" onchange="updateStat('int', this.value)"><br>
-            CON: <input type="number" value="${state.stats.con}" onchange="updateStat('con', this.value)"><br>
-            DEX: <input type="number" value="${state.stats.dex}" onchange="updateStat('dex', this.value)"><br>
-            WIS: <input type="number" value="${state.stats.wis}" onchange="updateStat('wis', this.value)"><br>
-            CHA: <input type="number" value="${state.stats.cha}" onchange="updateStat('cha', this.value)"><br>
-        `;
-    } else {
-        form.style.display = 'none';
-    }
-};
-
-window.updateState = (field, val) => {
-    state[field] = parseInt(val);
-    if (field === 'level') {
-        state.proficiencyBonus = Math.floor((state.level - 1) / 4) + 2;
-    }
-    saveState();
-    renderAll();
-};
-
-window.updateStateString = (field, val) => {
-    state[field] = val;
-    saveState();
-    renderAll();
-};
-
-window.updateHP = (field, val) => {
-    state.hp[field] = parseInt(val);
-    saveState();
-    renderAll();
-};
-
-window.updateStat = (stat, val) => {
-    state.stats[stat] = parseInt(val);
-    saveState();
-    renderAll();
-};
 
 function renderPlans(filter = '') {
     const preparedDiv = document.getElementById('prepared-plans');

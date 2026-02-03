@@ -5,8 +5,8 @@ export const characterData = {
     name: "Praštiklešť",
     class: "Artificer (Battle Smith)",
     level: 6,
-    race: "Trpaslík (Mountain Dwarf)",
-    background: "Merchant (Kupec)",
+    race: "Dwarf (Mountain Dwarf)",
+    background: "Merchant",
     alignment: "Neutral",
     stats: {
         str: 11,
@@ -132,6 +132,10 @@ export const characterData = {
     money: {
         cp: 0, sp: 0, gp: 22, ep: 0, pp: 0
     },
+    initiative: 3,
+    speed: 30,
+    spellSaveDC: 16,
+    spellAttackBonus: 8,
     steelDefender: {
         name: "Steel Defender",
         ac: 17, // 12 + INT(5) = 17
