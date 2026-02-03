@@ -26,9 +26,24 @@ export const characterData = {
     proficiencyBonus: 3,
     savingThrows: ["con", "int"],
     skills: {
+        acrobatics: { proficient: false, expert: false },
         animalHandling: { proficient: true, expert: false },
+        arcana: { proficient: false, expert: false },
+        athletics: { proficient: false, expert: false },
+        deception: { proficient: false, expert: false },
+        history: { proficient: false, expert: false },
+        insight: { proficient: false, expert: false },
+        intimidation: { proficient: false, expert: false },
+        investigation: { proficient: false, expert: false },
+        medicine: { proficient: false, expert: false },
+        nature: { proficient: false, expert: false },
+        perception: { proficient: false, expert: false, passive: 15 },
+        performance: { proficient: false, expert: false },
         persuasion: { proficient: true, expert: false },
-        perception: { proficient: false, expert: false, passive: 15 }
+        religion: { proficient: false, expert: false },
+        sleightOfHand: { proficient: false, expert: false },
+        stealth: { proficient: false, expert: false },
+        survival: { proficient: false, expert: false }
     },
     features: [
         {

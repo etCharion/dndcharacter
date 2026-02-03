@@ -10,6 +10,13 @@ if (state.speed === undefined) state.speed = characterData.speed || 30;
 if (state.spellSaveDC === undefined) state.spellSaveDC = characterData.spellSaveDC || 8;
 if (state.spellAttackBonus === undefined) state.spellAttackBonus = characterData.spellAttackBonus || 0;
 
+// Ensure all skills from characterData are present in state
+for (let skill in characterData.skills) {
+    if (!state.skills[skill]) {
+        state.skills[skill] = { ...characterData.skills[skill] };
+    }
+}
+
 function saveState() {
     localStorage.setItem('dnd_char_state', JSON.stringify(state));
 }
@@ -144,27 +151,42 @@ function renderStats() {
     `;
     combatEssentials.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field, true));
 
-    // Main Stats Grid (Detailed skills/checks can go here)
+    // Main Stats Grid - Compact Skills List
     const statsDiv = document.getElementById('stats-grid');
-    statsDiv.innerHTML = '';
+    statsDiv.innerHTML = '<h3>Skills</h3>';
+    statsDiv.className = 'skills-container';
 
-    // Skills
-    for (let skill in state.skills) {
+    // Sort skills alphabetically
+    const sortedSkills = Object.keys(state.skills).sort();
+
+    const skillList = document.createElement('div');
+    skillList.className = 'skills-list';
+
+    sortedSkills.forEach(skill => {
         const s = state.skills[skill];
         const ability = getAbilityForSkill(skill);
         const mod = Math.floor((state.stats[ability] - 10) / 2);
         const total = mod + (s.proficient ? state.proficiencyBonus : 0) + (s.expert ? state.proficiencyBonus : 0);
+        // Note: s.expert adds another PB if already proficient, effectively doubling PB.
+        // 2024 rules: total = mod + (proficient ? PB : 0) + (expert ? PB : 0)
 
-        const card = document.createElement('div');
-        card.className = `stat-card ${s.proficient ? 'proficient' : ''}`;
-        card.innerHTML = `
-            <div class="stat-name">${skill.replace(/([A-Z])/g, ' $1').toUpperCase()}</div>
-            <div class="stat-value">${total >= 0 ? '+' : ''}${total}</div>
-            <div class="stat-mod">${ability.toUpperCase()}</div>
+        const displayName = skill.replace(/([A-Z])/g, ' $1')
+            .trim()
+            .replace(/^\w/, c => c.toUpperCase())
+            .replace(/\bOf\b/g, 'of');
+
+        const item = document.createElement('div');
+        item.className = `skill-item ${s.proficient ? 'proficient' : ''} ${s.expert ? 'expert' : ''}`;
+        item.innerHTML = `
+            <div class="skill-prof-marker"></div>
+            <span class="skill-total">${total >= 0 ? '+' : ''}${total}</span>
+            <span class="skill-name">${displayName}</span>
+            <span class="skill-ability">${ability.toUpperCase()}</span>
         `;
-        card.onclick = () => toggleSkillProficiency(skill);
-        statsDiv.appendChild(card);
-    }
+        item.onclick = () => toggleSkillProficiency(skill);
+        skillList.appendChild(item);
+    });
+    statsDiv.appendChild(skillList);
 }
 
 window.toggleSkillProficiency = (skill) => {
