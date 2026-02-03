@@ -213,7 +213,7 @@ header {
     text-align: right;
 }
 
-.features-list, #prepared-spells, #all-spells-list {
+.features-list, #prepared-spells, #all-spells-list, #prepared-plans, #all-plans-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
