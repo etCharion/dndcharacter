@@ -66,6 +66,7 @@ state.features.forEach(f => {
     if (master) {
         f.name = master.name; // Sync name in case of renames
         f.description = master.description;
+        f.level = master.level;
         if (master.limitedUse) {
             if (!f.limitedUse) {
                 f.limitedUse = { ...master.limitedUse, used: 0 };
@@ -84,17 +85,33 @@ characterData.features.forEach(mf => {
     }
 });
 
-// Update Steel Defender actions
-if (state.steelDefender && state.steelDefender.actions) {
-    state.steelDefender.actions.forEach(a => {
-        const master = characterData.steelDefender.actions.find(ma => ma.name === a.name);
-        if (master) a.description = master.description;
-    });
-}
-if (state.steelDefender && state.steelDefender.reactions) {
-    state.steelDefender.reactions.forEach(r => {
-        const master = characterData.steelDefender.reactions.find(mr => mr.name === r.name);
-        if (master) r.description = master.description;
+// Update Steel Defender and add missing properties
+if (state.steelDefender) {
+    // Sync actions
+    if (state.steelDefender.actions) {
+        state.steelDefender.actions.forEach(a => {
+            const master = characterData.steelDefender.actions.find(ma => ma.name === a.name);
+            if (master) a.description = master.description;
+        });
+    } else {
+        state.steelDefender.actions = characterData.steelDefender.actions;
+    }
+
+    // Sync reactions
+    if (state.steelDefender.reactions) {
+        state.steelDefender.reactions.forEach(r => {
+            const master = characterData.steelDefender.reactions.find(mr => mr.name === r.name);
+            if (master) r.description = master.description;
+        });
+    } else {
+        state.steelDefender.reactions = characterData.steelDefender.reactions;
+    }
+
+    // Ensure other new properties exist
+    ['immunities', 'senses', 'languages', 'traits', 'hitDice'].forEach(prop => {
+        if (state.steelDefender[prop] === undefined) {
+            state.steelDefender[prop] = characterData.steelDefender[prop];
+        }
     });
 }
 
@@ -362,11 +379,23 @@ function renderSteelDefenderOverview(parent) {
                 if (!a.limitedUse) return '';
                 return `
                 <div class="limited-use-stats-item">
-                    <span>${a.name}</span>
+                    <span class="feat-name" onclick="document.querySelector('[data-tab=\'steel-defender\']').click()">${a.name}</span>
                     ${renderLimitedUse(a, 'sd-action', i)}
                 </div>
                 `;
             }).join('') : ''}
+            ${sd.hitDice ? `
+                <div class="limited-use-stats-item">
+                    <span class="feat-name" onclick="document.querySelector('[data-tab=\'steel-defender\']').click()">Hit Dice (${sd.hitDice.max}d8)</span>
+                    <div class="uses">
+                        <div class="limited-use">
+                            ${Array.from({ length: sd.hitDice.max }).map((_, i) => `
+                                <input type="checkbox" ${i < (sd.hitDice.max - sd.hitDice.current) ? 'checked' : ''} onclick="toggleSDHitDice(${i})">
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
         </div>
     `;
 
@@ -374,6 +403,20 @@ function renderSteelDefenderOverview(parent) {
     overview.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field, true));
     parent.appendChild(section);
 }
+
+window.toggleSDHitDice = (useIndex) => {
+    const sd = state.steelDefender;
+    const currentUsed = sd.hitDice.max - sd.hitDice.current;
+
+    if (useIndex < currentUsed) {
+        sd.hitDice.current = sd.hitDice.max - useIndex;
+    } else {
+        sd.hitDice.current = sd.hitDice.max - (useIndex + 1);
+    }
+
+    saveState();
+    renderAll();
+};
 
 function renderTraitsOverview(parent) {
     const section = document.createElement('div');
@@ -443,7 +486,8 @@ window.updateTraitType = (index, val) => {
     renderAll();
 };
 
-window.jumpToFeature = (index) => {
+window.jumpToFeature = (originalIndex) => {
+    // Switch to Features tab
     const tabs = document.querySelectorAll('.tab-btn');
     tabs.forEach(t => {
         if (t.dataset.tab === 'features') {
@@ -451,15 +495,19 @@ window.jumpToFeature = (index) => {
         }
     });
 
-    uiState.expandedFeatures.add(index);
+    // Expand the feature
+    uiState.expandedFeatures.add(originalIndex);
     renderAll();
 
+    // Scroll into view
     setTimeout(() => {
-        const featEl = document.querySelectorAll('.feature-item')[index];
+        const featEl = document.querySelector(`.feature-item[data-index="${originalIndex}"]`);
         if (featEl) {
-            featEl.scrollIntoView({ behavior: 'smooth' });
+            featEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            featEl.classList.add('highlight-pulse');
+            setTimeout(() => featEl.classList.remove('highlight-pulse'), 2000);
         }
-    }, 100);
+    }, 150);
 };
 
 window.toggleSkillProficiency = (skill) => {
@@ -571,7 +619,25 @@ function renderFeatures(filter = null) {
 
     const container = document.getElementById('features-list');
     container.innerHTML = '';
-    state.features.forEach((feat, index) => {
+
+    // Create a copy for sorting/filtering
+    const sortedFeatures = state.features.map((f, i) => ({ ...f, originalIndex: i }));
+
+    // Sort: Class and Subclass features by level
+    sortedFeatures.sort((a, b) => {
+        const isAClass = a.source.includes('Artificer') || a.source.includes('Battle Smith');
+        const isBClass = b.source.includes('Artificer') || b.source.includes('Battle Smith');
+
+        if (isAClass && isBClass) {
+            return (a.level || 0) - (b.level || 0);
+        }
+        // Keep original order for others, or prioritize race/feats?
+        // Let's just sort everything by level if available, but keep Class focus.
+        return (a.level || 0) - (b.level || 0);
+    });
+
+    sortedFeatures.forEach((feat) => {
+        const index = feat.originalIndex;
         // Text filter
         if (filter && !feat.name.toLowerCase().includes(filter.toLowerCase()) && !feat.description.toLowerCase().includes(filter.toLowerCase())) {
             return;
@@ -589,6 +655,7 @@ function renderFeatures(filter = null) {
         const isExpanded = uiState.expandedFeatures.has(index);
         const item = document.createElement('div');
         item.className = `feature-item ${isExpanded ? 'expanded-item' : ''}`;
+        item.dataset.index = index;
         item.innerHTML = `
             <div class="feature-header" onclick="toggleFeatureExpanded(${index})">
                 <strong>${feat.name}</strong> <span>${feat.source}</span>
@@ -818,6 +885,83 @@ window.unprepareSpell = (idx) => {
     renderAll();
 };
 
+const COMMON_ACTIONS = [
+    { name: "Attack", description: "Make one melee or ranged attack, or multiple if you have Extra Attack." },
+    { name: "Dash", description: "Gain extra movement for the current turn equal to your Speed." },
+    { name: "Disengage", description: "Your movement doesn't provoke Opportunity Attacks for the rest of the turn." },
+    { name: "Dodge", description: "Attack rolls against you have Disadvantage, and you have Advantage on Dex saves." },
+    { name: "Help", description: "Give Advantage to a creature's next ability check or attack roll." },
+    { name: "Hide", description: "Make a Stealth check to become Hidden." },
+    { name: "Magic", description: "Cast a spell, use a magic item, or use a feature that requires this action." },
+    { name: "Ready", description: "Define a trigger and an action to take as a Reaction when the trigger occurs." },
+    { name: "Search", description: "Make a Wisdom (Perception) or Wisdom (Insight) check." },
+    { name: "Study", description: "Make an Intelligence check (Arcana, History, Nature, Religion, etc.)." },
+    { name: "Utter", description: "Speak briefly or use a command word of a magic item." },
+    { name: "Influence", description: "Make a Charisma check (Deception, Intimidation, Performance, Persuasion) to influence a creature." }
+];
+
+function renderCombatActions() {
+    const actionsList = document.getElementById('actions-list');
+    const bonusActionsList = document.getElementById('bonus-actions-list');
+    const reactionsList = document.getElementById('reactions-list');
+
+    if (!actionsList || !bonusActionsList || !reactionsList) return;
+
+    actionsList.innerHTML = '';
+    bonusActionsList.innerHTML = '';
+    reactionsList.innerHTML = '';
+
+    // Render Common Actions
+    COMMON_ACTIONS.forEach(action => {
+        const item = document.createElement('div');
+        item.className = 'combat-action-item common';
+        item.innerHTML = `<strong>${action.name}:</strong> <span>${action.description}</span>`;
+        actionsList.appendChild(item);
+    });
+
+    // Extract Specific Actions from Features
+    state.features.forEach((feat, index) => {
+        const desc = feat.description.toLowerCase();
+        let targetList = null;
+        let typeLabel = '';
+
+        if (desc.includes('bonus action')) {
+            targetList = bonusActionsList;
+            typeLabel = 'Bonus Action';
+        } else if (desc.includes('reaction')) {
+            targetList = reactionsList;
+            typeLabel = 'Reaction';
+        } else if (desc.includes('magic action') || desc.includes('as an action')) {
+            targetList = actionsList;
+            typeLabel = 'Action';
+        }
+
+        if (targetList) {
+            const item = document.createElement('div');
+            item.className = 'combat-action-item specific';
+            item.innerHTML = `
+                <div class="action-main">
+                    <strong class="feat-name" onclick="jumpToFeature(${index})">${feat.name}</strong>
+                    <div class="action-preview">${feat.description.split('<br>')[0].split('.')[0]}.</div>
+                </div>
+                ${feat.limitedUse ? `<div class="action-uses">${renderLimitedUse(feat, 'feature', index)}</div>` : ''}
+            `;
+            targetList.appendChild(item);
+        }
+    });
+
+    // Special case: Steel Defender Command
+    const sdItem = document.createElement('div');
+    sdItem.className = 'combat-action-item specific';
+    sdItem.innerHTML = `
+        <div class="action-main">
+            <strong class="feat-name" onclick="document.querySelector('[data-tab=\'steel-defender\']').click()">Command Steel Defender</strong>
+            <div class="action-preview">Command the defender to take an action other than Dodge.</div>
+        </div>
+    `;
+    bonusActionsList.appendChild(sdItem);
+}
+
 function renderInventory() {
     const invDiv = document.getElementById('inventory-list');
     invDiv.innerHTML = '';
@@ -882,6 +1026,7 @@ window.toggleEquip = (idx) => {
 };
 
 function renderSteelDefender() {
+    if (!state.steelDefender) return;
     const sd = state.steelDefender;
     const intMod = Math.floor((state.stats.int - 10) / 2);
     const pb = state.proficiencyBonus;
@@ -891,28 +1036,89 @@ function renderSteelDefender() {
 
     const div = document.getElementById('sd-info');
     div.innerHTML = `
-        <h3>${sd.name}</h3>
-        <p>AC: ${sd.ac} | HP: ${sd.hp.current}/${sd.hp.max} | Speed: ${sd.speed}</p>
-        <p>Senses: Darkvision 60 ft., Passive Perception 10 + PB = ${10 + pb}</p>
-        <div>
-            <strong>Actions:</strong>
-            ${sd.actions.map((a, i) => {
-                let desc = a.description;
-                if (a.name === "Force-Empowered Rend") {
-                    desc = `Melee Attack Roll: +${pb + intMod} to hit, reach 5 ft. Hit: 1d8 + ${2 + intMod} force damage.`;
-                }
-                if (a.name === "Repair (3/Day)") {
-                    desc = `The defender, or one Construct or object it can see within 5 feet of it, regains 2d8 + ${intMod} HP.`;
-                }
-                return `
-                <div class="sd-action">
-                    <strong>${a.name}</strong>: ${desc}
-                    ${a.limitedUse ? renderLimitedUse(a, 'sd-action', i) : ''}
+        <div class="sd-full-stat-block">
+            <div class="sd-header-main">
+                <h2 class="editable" data-field="steelDefender.name">${sd.name}</h2>
+                <div class="sd-main-essentials">
+                    <div class="essential-item">
+                        <span class="label">AC</span>
+                        <span class="value">${sd.ac}</span>
+                    </div>
+                    <div class="essential-item">
+                        <span class="label">HP</span>
+                        <span class="value"><span class="editable" data-field="steelDefender.hp.current" data-type="number">${sd.hp.current}</span> / ${sd.hp.max}</span>
+                    </div>
+                    <div class="essential-item">
+                        <span class="label">Speed</span>
+                        <span class="value">${sd.speed} ft.</span>
+                    </div>
+                    ${sd.hitDice ? `
+                    <div class="essential-item">
+                        <span class="label">Hit Dice</span>
+                        <span class="value">${sd.hitDice.current} / ${sd.hitDice.max}</span>
+                    </div>` : ''}
                 </div>
-                `;
-            }).join('')}
+            </div>
+
+            <div class="sd-stats-grid compact-stats-bar">
+                ${Object.keys(sd.stats).map(stat => {
+                    const val = sd.stats[stat];
+                    const mod = Math.floor((val - 10) / 2);
+                    const saveMod = mod + pb; // Steel Bond adds PB to all saves
+                    return `
+                    <div class="stat-item">
+                        <span class="label">${stat}</span>
+                        <span class="value">${val} (${mod >= 0 ? '+' : ''}${mod})</span>
+                        <span class="sub-value" title="Base Mod (${mod >= 0 ? '+' : ''}${mod}) + Proficiency Bonus (+${pb}) from Steel Bond">Save: ${saveMod >= 0 ? '+' : ''}${saveMod}</span>
+                    </div>
+                    `;
+                }).join('')}
+            </div>
+
+            <div class="sd-details-section">
+                <div class="sd-detail-item"><strong>Immunities:</strong> ${sd.immunities || 'None'}</div>
+                <div class="sd-detail-item"><strong>Senses:</strong> ${sd.senses || 'Normal'}</div>
+                <div class="sd-detail-item"><strong>Languages:</strong> ${sd.languages || 'None'}</div>
+            </div>
+
+            <div class="sd-traits-section">
+                <h3>Traits</h3>
+                ${(sd.traits || []).map(t => `
+                    <div class="sd-trait">
+                        <strong>${t.name}.</strong> ${t.description}
+                    </div>
+                `).join('')}
+            </div>
+
+            <div class="sd-actions-section">
+                <h3>Actions</h3>
+                ${sd.actions.map((a, i) => {
+                    let desc = a.description;
+                    if (a.name === "Force-Empowered Rend") {
+                        desc = `Melee Attack Roll: +${pb + intMod} to hit, reach 5 ft. Hit: 1d8 + ${2 + intMod} force damage.`;
+                    }
+                    if (a.name === "Repair (3/Day)") {
+                        desc = `The defender, or one Construct or object it can see within 5 feet of it, regains 2d8 + ${intMod} HP.`;
+                    }
+                    return `
+                    <div class="sd-action">
+                        <strong>${a.name}</strong>: ${desc}
+                        ${a.limitedUse ? renderLimitedUse(a, 'sd-action', i) : ''}
+                    </div>
+                    `;
+                }).join('')}
+                ${sd.reactions ? `
+                <h3>Reactions</h3>
+                ${sd.reactions.map(r => `
+                    <div class="sd-action">
+                        <strong>${r.name}</strong>: ${r.description}
+                    </div>
+                `).join('')}
+                ` : ''}
+            </div>
         </div>
     `;
+    div.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field, el.dataset.type === 'number'));
 }
 
 window.filterFeatures = () => {
@@ -1023,6 +1229,7 @@ function renderAll() {
     renderSpells();
     renderPlans();
     renderInventory();
+    renderCombatActions();
     renderSteelDefender();
 }
 
