@@ -20,6 +20,7 @@
         <button class="tab-btn active" data-tab="stats">Stats</button>
         <button class="tab-btn" data-tab="features">Features</button>
         <button class="tab-btn" data-tab="spells">Spells</button>
+        <button class="tab-btn" data-tab="plans">Plans (Infusions)</button>
         <button class="tab-btn" data-tab="combat">Combat & Inv</button>
         <button class="tab-btn" data-tab="steel-defender">Steel Defender</button>
     </nav>
@@ -53,6 +54,18 @@
             <div id="all-spells-list">
                 <h3>Spellbook / All Known Spells</h3>
                 <!-- List of all spells to prepare from -->
+            </div>
+        </section>
+
+        <!-- Plans Tab -->
+        <section id="plans" class="tab-content">
+            <div class="plan-filters">
+                <input type="text" id="plan-filter" placeholder="Filter plans..." onkeyup="filterPlans()">
+            </div>
+            <div id="prepared-plans"></div>
+            <hr>
+            <div id="all-plans-list">
+                <h3>All Magic Item Plans</h3>
             </div>
         </section>
 

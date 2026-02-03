@@ -2,6 +2,10 @@ import { characterData } from '../data/character.js';
 
 let state = JSON.parse(localStorage.getItem('dnd_char_state')) || { ...characterData };
 
+// Ensure new structure elements exist
+if (!state.plans) state.plans = characterData.plans;
+if (!state.spells.all) state.spells.all = characterData.spells.all;
+
 function saveState() {
     localStorage.setItem('dnd_char_state', JSON.stringify(state));
 }
@@ -63,6 +67,7 @@ function renderTabs() {
 }
 
 function renderStats() {
+    document.getElementById('char-name').innerText = state.name;
     const statsDiv = document.getElementById('stats-grid');
     statsDiv.innerHTML = '';
     for (let stat in state.stats) {
@@ -80,6 +85,8 @@ function renderStats() {
 
     const basicInfo = document.getElementById('basic-info');
     basicInfo.innerHTML = `
+        <div class="info-item"><span>Race:</span> <strong>${state.race}</strong></div>
+        <div class="info-item"><span>Background:</span> <strong>${state.background}</strong></div>
         <div class="info-item"><span>Level:</span> <strong>${state.level}</strong></div>
         <div class="info-item"><span>HP:</span> <strong>${state.hp.current} / ${state.hp.max}</strong></div>
         <div class="info-item"><span>AC:</span> <strong>${state.ac}</strong></div>
@@ -157,12 +164,16 @@ function renderSpells(filter = '') {
         if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase())) return;
         const sDiv = document.createElement('div');
         sDiv.className = 'spell-item';
+        const unprepareBtn = spell.alwaysPrepared ? '' : `<button onclick="event.stopPropagation(); unprepareSpell(${idx})">Unprepare</button>`;
         sDiv.innerHTML = `
             <div onclick="this.querySelector('.spell-desc').classList.toggle('hidden')">
                 <strong>${spell.name}</strong> (Lvl ${spell.level}) - ${spell.type}
                 <button onclick="event.stopPropagation(); castSpell(${idx})">Cast</button>
-                <button onclick="event.stopPropagation(); unprepareSpell(${idx})">Unprepare</button>
-                <div class="spell-desc hidden">${spell.description || 'No description.'}</div>
+                ${unprepareBtn}
+                <div class="spell-desc hidden">
+                    <div><em>${spell.school || ''} | ${spell.castingTime || ''} | ${spell.range || ''} | ${spell.duration || ''}</em></div>
+                    ${spell.description || 'No description.'}
+                </div>
             </div>
         `;
         preparedDiv.appendChild(sDiv);
@@ -332,6 +343,7 @@ window.toggleEditStats = () => {
     if (form.style.display === 'none') {
         form.style.display = 'block';
         form.innerHTML = `
+            Name: <input type="text" value="${state.name}" onchange="updateStateString('name', this.value)"><br>
             Level: <input type="number" value="${state.level}" onchange="updateState('level', this.value)"><br>
             Max HP: <input type="number" value="${state.hp.max}" onchange="updateHP('max', this.value)"><br>
             Current HP: <input type="number" value="${state.hp.current}" onchange="updateHP('current', this.value)"><br>
@@ -357,6 +369,12 @@ window.updateState = (field, val) => {
     renderAll();
 };
 
+window.updateStateString = (field, val) => {
+    state[field] = val;
+    saveState();
+    renderAll();
+};
+
 window.updateHP = (field, val) => {
     state.hp[field] = parseInt(val);
     saveState();
@@ -369,10 +387,64 @@ window.updateStat = (stat, val) => {
     renderAll();
 };
 
+function renderPlans(filter = '') {
+    const preparedDiv = document.getElementById('prepared-plans');
+    preparedDiv.innerHTML = '<h3>Prepared Plans</h3>';
+    state.plans.prepared.forEach((plan, idx) => {
+        if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
+        const pDiv = document.createElement('div');
+        pDiv.className = 'spell-item';
+        pDiv.innerHTML = `
+            <div onclick="this.querySelector('.plan-desc').classList.toggle('hidden')">
+                <strong>${plan.name}</strong> (${plan.rarity})
+                <button onclick="event.stopPropagation(); unpreparePlan(${idx})">Remove</button>
+                <div class="plan-desc hidden">
+                    <div><em>${plan.type}</em></div>
+                    ${plan.description}
+                </div>
+            </div>
+        `;
+        preparedDiv.appendChild(pDiv);
+    });
+
+    const allPlansDiv = document.getElementById('all-plans-list');
+    allPlansDiv.innerHTML = '<h3>All Magic Item Plans</h3>';
+    state.plans.all.forEach((plan, idx) => {
+        if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
+        const isPrepared = state.plans.prepared.some(p => p.name === plan.name);
+        if (isPrepared) return;
+        const pDiv = document.createElement('div');
+        pDiv.className = 'spell-item-all';
+        pDiv.innerHTML = `
+            <span>${plan.name} (Lvl ${plan.level || ''})</span>
+            <button onclick="preparePlan(${idx})">Select</button>
+        `;
+        allPlansDiv.appendChild(pDiv);
+    });
+}
+
+window.filterPlans = () => {
+    const val = document.getElementById('plan-filter').value;
+    renderPlans(val);
+};
+
+window.preparePlan = (idx) => {
+    state.plans.prepared.push(state.plans.all[idx]);
+    saveState();
+    renderAll();
+};
+
+window.unpreparePlan = (idx) => {
+    state.plans.prepared.splice(idx, 1);
+    saveState();
+    renderAll();
+};
+
 function renderAll() {
     renderStats();
     renderFeatures();
     renderSpells();
+    renderPlans();
     renderInventory();
     renderSteelDefender();
 }
