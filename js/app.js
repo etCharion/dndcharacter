@@ -2,12 +2,22 @@ import { characterData } from '../data/character.js';
 
 let state = JSON.parse(localStorage.getItem('dnd_char_state')) || { ...characterData };
 
+let uiState = {
+    expandedFeatures: new Set(),
+    expandedSpells: new Set(),
+    expandedPlans: new Set(),
+    expandedTraits: new Set()
+};
+
 // Ensure new structure elements exist and master lists are up to date
 if (!state.plans) state.plans = characterData.plans;
 state.plans.all = characterData.plans.all;
 
 if (!state.spells) state.spells = characterData.spells;
 state.spells.all = characterData.spells.all;
+
+if (!state.traits) state.traits = characterData.traits || [];
+
 if (state.initiative === undefined) state.initiative = characterData.initiative || 0;
 if (state.speed === undefined) state.speed = characterData.speed || 30;
 if (state.spellSaveDC === undefined) state.spellSaveDC = characterData.spellSaveDC || 8;
@@ -190,7 +200,163 @@ function renderStats() {
         skillList.appendChild(item);
     });
     statsDiv.appendChild(skillList);
+
+    renderStatsExtras();
 }
+
+function renderStatsExtras() {
+    const container = document.getElementById('stats-extras');
+    if (!container) return;
+    container.innerHTML = '';
+
+    renderLimitedUseOverview(container);
+    renderSteelDefenderOverview(container);
+    renderTraitsOverview(container);
+}
+
+function renderLimitedUseOverview(parent) {
+    const section = document.createElement('div');
+    section.className = 'extra-section';
+    section.innerHTML = '<h3>Limited Use</h3>';
+
+    state.features.forEach((feat, index) => {
+        if (feat.limitedUse) {
+            const item = document.createElement('div');
+            item.className = 'limited-use-stats-item';
+            item.innerHTML = `
+                <span class="feat-name" onclick="jumpToFeature(${index})">${feat.name}</span>
+                <div class="uses">
+                    ${renderLimitedUse(feat, 'feature', index)}
+                </div>
+            `;
+            section.appendChild(item);
+        }
+    });
+    parent.appendChild(section);
+}
+
+function renderSteelDefenderOverview(parent) {
+    if (!state.steelDefender) return;
+    const sd = state.steelDefender;
+    const section = document.createElement('div');
+    section.className = 'extra-section';
+    section.innerHTML = '<h3>Steel Defender</h3>';
+
+    const overview = document.createElement('div');
+    overview.className = 'sd-overview-content';
+
+    const intMod = Math.floor((state.stats.int - 10) / 2);
+    sd.ac = 12 + intMod;
+    sd.hp.max = 5 + (5 * state.level);
+
+    overview.innerHTML = `
+        <div class="sd-overview-grid">
+            <div class="sd-stat"><strong>AC:</strong> ${sd.ac}</div>
+            <div class="sd-stat"><strong>HP:</strong> <span class="editable" data-field="steelDefender.hp.current" data-type="number">${sd.hp.current}</span> / ${sd.hp.max}</div>
+            <div class="sd-stat"><strong>Speed:</strong> ${sd.speed}</div>
+            <div class="sd-stat"><strong>Perc:</strong> ${10 + state.proficiencyBonus}</div>
+        </div>
+        <div class="sd-actions-minimal">
+            ${sd.actions ? sd.actions.filter(a => a.limitedUse).map((a, i) => `
+                <div class="limited-use-stats-item">
+                    <span>${a.name}</span>
+                    ${renderLimitedUse(a, 'sd-action', i)}
+                </div>
+            `).join('') : ''}
+        </div>
+    `;
+
+    section.appendChild(overview);
+    overview.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field, true));
+    parent.appendChild(section);
+}
+
+function renderTraitsOverview(parent) {
+    const section = document.createElement('div');
+    section.className = 'extra-section';
+    section.innerHTML = `
+        <h3>Overviews <button onclick="addTrait()">+ Add</button></h3>
+    `;
+
+    state.traits.forEach((trait, index) => {
+        const isExpanded = uiState.expandedTraits.has(index);
+        const item = document.createElement('div');
+        item.className = 'trait-item';
+        item.innerHTML = `
+            <div class="trait-header" onclick="toggleTrait(${index})">
+                <div class="trait-icon ${trait.type}">${trait.type}</div>
+                <strong class="trait-name editable" data-field="traits.${index}.name">${trait.name}</strong>
+                <span class="delete-btn" onclick="event.stopPropagation(); deleteTrait(${index})">×</span>
+            </div>
+            <div class="trait-body ${isExpanded ? '' : 'hidden'}">
+                <div class="editable" data-field="traits.${index}.note">${trait.note || 'No note.'}</div>
+                <div class="trait-source">Source: <span class="editable" data-field="traits.${index}.source">${trait.source || 'Unknown'}</span></div>
+                <div class="trait-type-selector">
+                    Type: <select onchange="updateTraitType(${index}, this.value)">
+                        <option value="A" ${trait.type === 'A' ? 'selected' : ''}>Advantage</option>
+                        <option value="D" ${trait.type === 'D' ? 'selected' : ''}>Disadvantage</option>
+                        <option value="R" ${trait.type === 'R' ? 'selected' : ''}>Resistance</option>
+                        <option value="I" ${trait.type === 'I' ? 'selected' : ''}>Immunity</option>
+                    </select>
+                </div>
+            </div>
+        `;
+        section.appendChild(item);
+    });
+
+    section.querySelectorAll('.editable').forEach(el => {
+        el.addEventListener('click', (e) => e.stopPropagation());
+        attachInlineEdit(el, el.dataset.field);
+    });
+
+    parent.appendChild(section);
+}
+
+window.toggleTrait = (index) => {
+    if (uiState.expandedTraits.has(index)) {
+        uiState.expandedTraits.delete(index);
+    } else {
+        uiState.expandedTraits.add(index);
+    }
+    renderAll();
+};
+
+window.addTrait = () => {
+    state.traits.push({ name: "New Trait", type: "A", note: "Add note here", source: "Add source here" });
+    saveState();
+    renderAll();
+};
+
+window.deleteTrait = (index) => {
+    state.traits.splice(index, 1);
+    saveState();
+    renderAll();
+};
+
+window.updateTraitType = (index, val) => {
+    state.traits[index].type = val;
+    saveState();
+    renderAll();
+};
+
+window.jumpToFeature = (index) => {
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(t => {
+        if (t.dataset.tab === 'features') {
+            t.click();
+        }
+    });
+
+    uiState.expandedFeatures.add(index);
+    renderAll();
+
+    setTimeout(() => {
+        const featEl = document.querySelectorAll('.feature-item')[index];
+        if (featEl) {
+            featEl.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, 100);
+};
 
 window.toggleSkillProficiency = (skill) => {
     state.skills[skill].proficient = !state.skills[skill].proficient;
@@ -289,13 +455,14 @@ function renderFeatures(filter = '') {
         if (filter && !feat.name.toLowerCase().includes(filter.toLowerCase()) && !feat.description.toLowerCase().includes(filter.toLowerCase())) {
             return;
         }
+        const isExpanded = uiState.expandedFeatures.has(index);
         const item = document.createElement('div');
-        item.className = 'feature-item';
+        item.className = `feature-item ${isExpanded ? 'expanded-item' : ''}`;
         item.innerHTML = `
-            <div class="feature-header" onclick="this.nextElementSibling.classList.toggle('hidden')">
+            <div class="feature-header" onclick="toggleFeatureExpanded(${index})">
                 <strong>${feat.name}</strong> <span>${feat.source}</span>
             </div>
-            <div class="feature-body hidden">
+            <div class="feature-body ${isExpanded ? '' : 'hidden'}">
                 <div class="feature-desc">${feat.description}</div>
                 ${feat.details ? `<div class="feature-details">${feat.details}</div>` : ''}
                 ${feat.limitedUse ? renderLimitedUse(feat, 'feature', index) : ''}
@@ -304,6 +471,15 @@ function renderFeatures(filter = '') {
         container.appendChild(item);
     });
 }
+
+window.toggleFeatureExpanded = (index) => {
+    if (uiState.expandedFeatures.has(index)) {
+        uiState.expandedFeatures.delete(index);
+    } else {
+        uiState.expandedFeatures.add(index);
+    }
+    renderFeatures();
+};
 
 function renderLimitedUse(obj, type, index) {
     let html = '<div class="limited-use">';
@@ -350,8 +526,9 @@ function renderSpells(filter = '') {
     preparedDiv.innerHTML = '<h3>Prepared Spells</h3>';
     state.spells.prepared.forEach((spell, idx) => {
         if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase())) return;
+        const isExpanded = uiState.expandedSpells.has('prepared-' + spell.name);
         const sDiv = document.createElement('div');
-        sDiv.className = 'spell-item';
+        sDiv.className = `spell-item ${isExpanded ? 'expanded-item' : ''}`;
 
         const comps = spell.components ? spell.components.split('(')[0].trim() : '';
         const previewInfo = `Lvl ${spell.level} | ${spell.castingTime} | ${spell.range} | ${spell.duration} | ${comps}`;
@@ -360,7 +537,7 @@ function renderSpells(filter = '') {
         const unprepareBtn = (spell.alwaysPrepared || spell.level === 0) ? '' : `<button onclick="event.stopPropagation(); unprepareSpell(${idx})">Unprepare</button>`;
 
         sDiv.innerHTML = `
-            <div onclick="this.querySelector('.spell-desc').classList.toggle('hidden')">
+            <div onclick="toggleSpellExpanded('prepared-${spell.name}')">
                 <div class="spell-header">
                     <strong>${spell.name}</strong>
                     <span class="spell-preview">${previewInfo}</span>
@@ -369,7 +546,7 @@ function renderSpells(filter = '') {
                         ${unprepareBtn}
                     </div>
                 </div>
-                <div class="spell-desc hidden">
+                <div class="spell-desc ${isExpanded ? '' : 'hidden'}">
                     <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
                     ${spell.description || 'No description.'}
                 </div>
@@ -384,20 +561,21 @@ function renderSpells(filter = '') {
         if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase())) return;
         const isPrepared = state.spells.prepared.some(p => p.name === spell.name);
         if (isPrepared) return;
+        const isExpanded = uiState.expandedSpells.has('all-' + spell.name);
         const sDiv = document.createElement('div');
-        sDiv.className = 'spell-item-all';
+        sDiv.className = `spell-item-all ${isExpanded ? 'expanded-item' : ''}`;
 
         const comps = spell.components ? spell.components.split('(')[0].trim() : '';
         const previewInfo = `Lvl ${spell.level} | ${spell.castingTime} | ${spell.range} | ${spell.duration} | ${comps}`;
 
         sDiv.innerHTML = `
-            <div onclick="this.querySelector('.spell-desc').classList.toggle('hidden')">
+            <div onclick="toggleSpellExpanded('all-${spell.name}')">
                 <div class="spell-header">
                     <strong>${spell.name}</strong>
                     <span class="spell-preview">${previewInfo}</span>
                     <button onclick="event.stopPropagation(); prepareSpell(${idx})">Prepare</button>
                 </div>
-                <div class="spell-desc hidden">
+                <div class="spell-desc ${isExpanded ? '' : 'hidden'}">
                     <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
                     ${spell.description || 'No description.'}
                 </div>
@@ -406,6 +584,15 @@ function renderSpells(filter = '') {
         allSpellsDiv.appendChild(sDiv);
     });
 }
+
+window.toggleSpellExpanded = (id) => {
+    if (uiState.expandedSpells.has(id)) {
+        uiState.expandedSpells.delete(id);
+    } else {
+        uiState.expandedSpells.add(id);
+    }
+    renderSpells();
+};
 
 window.toggleSpellSlot = (lvl, index) => {
     const slot = state.spells.slots[lvl];
@@ -556,20 +743,21 @@ function renderPlans(filter = '') {
     preparedDiv.innerHTML = '<h3>Prepared Plans</h3>';
     state.plans.prepared.forEach((plan, idx) => {
         if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
+        const isExpanded = uiState.expandedPlans.has('prepared-' + idx);
         const pDiv = document.createElement('div');
-        pDiv.className = 'spell-item';
+        pDiv.className = `spell-item ${isExpanded ? 'expanded-item' : ''}`;
 
         const rarityInfo = plan.rarity ? `(${plan.rarity})` : '';
         const levelInfo = plan.level ? `Lvl ${plan.level}` : '';
 
         pDiv.innerHTML = `
-            <div onclick="this.querySelector('.plan-desc').classList.toggle('hidden')">
+            <div onclick="togglePlanExpanded('prepared-${idx}')">
                 <div class="spell-header">
                     <strong class="editable" data-field="plans.prepared.${idx}.name">${plan.name}</strong>
                     <span class="spell-preview">${levelInfo} | ${rarityInfo}</span>
                     <button onclick="event.stopPropagation(); unpreparePlan(${idx})">Remove</button>
                 </div>
-                <div class="plan-desc hidden">
+                <div class="plan-desc ${isExpanded ? '' : 'hidden'}">
                     <div><em>${plan.type}</em></div>
                     <div class="editable" data-field="plans.prepared.${idx}.description">${plan.description}</div>
                 </div>
@@ -578,6 +766,7 @@ function renderPlans(filter = '') {
         preparedDiv.appendChild(pDiv);
     });
     preparedDiv.querySelectorAll('.editable').forEach(el => {
+        el.addEventListener('click', (e) => e.stopPropagation());
         attachInlineEdit(el, el.dataset.field);
     });
 
@@ -590,20 +779,21 @@ function renderPlans(filter = '') {
         const isPrepared = state.plans.prepared.some(p => p.name === plan.name);
         if (isPrepared && plan.name !== "Common magic item") return;
 
+        const isExpanded = uiState.expandedPlans.has('all-' + idx);
         const pDiv = document.createElement('div');
-        pDiv.className = 'spell-item-all';
+        pDiv.className = `spell-item-all ${isExpanded ? 'expanded-item' : ''}`;
 
         const rarityInfo = plan.rarity ? `(${plan.rarity})` : '';
         const levelInfo = plan.level ? `Lvl ${plan.level}` : '';
 
         pDiv.innerHTML = `
-            <div onclick="this.querySelector('.plan-desc').classList.toggle('hidden')">
+            <div onclick="togglePlanExpanded('all-${idx}')">
                 <div class="spell-header">
                     <strong>${plan.name}</strong>
                     <span class="spell-preview">${levelInfo} | ${rarityInfo}</span>
                     <button onclick="event.stopPropagation(); preparePlan(${idx})">Select</button>
                 </div>
-                <div class="plan-desc hidden">
+                <div class="plan-desc ${isExpanded ? '' : 'hidden'}">
                     <div><em>${plan.type}</em></div>
                     ${plan.description}
                 </div>
@@ -612,6 +802,15 @@ function renderPlans(filter = '') {
         allPlansDiv.appendChild(pDiv);
     });
 }
+
+window.togglePlanExpanded = (id) => {
+    if (uiState.expandedPlans.has(id)) {
+        uiState.expandedPlans.delete(id);
+    } else {
+        uiState.expandedPlans.add(id);
+    }
+    renderPlans();
+};
 
 window.filterPlans = () => {
     const val = document.getElementById('plan-filter').value;
