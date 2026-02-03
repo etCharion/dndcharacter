@@ -6,7 +6,34 @@ let uiState = {
     expandedFeatures: new Set(),
     expandedSpells: new Set(),
     expandedPlans: new Set(),
-    expandedTraits: new Set()
+    expandedTraits: new Set(),
+    featureFilters: new Set(),
+    spellFilters: new Set()
+};
+
+const FEATURE_CATEGORIES = {
+    'Race': (f) => f.source === 'Race',
+    'Feats': (f) => f.source.includes('Feat'),
+    'Class': (f) => f.source.includes('Artificer'),
+    'Subclass': (f) => f.source.includes('Battle Smith')
+};
+
+const SPELL_FILTER_GROUPS = {
+    level: ['Lv 0', 'Lv 1', 'Lv 2'],
+    action: ['Action', 'Bonus Action', 'Reaction'],
+    range: ['Touch'],
+    effect: ['Damage']
+};
+
+const SPELL_FILTERS = {
+    'Lv 0': (s) => s.level === 0,
+    'Lv 1': (s) => s.level === 1,
+    'Lv 2': (s) => s.level === 2,
+    'Action': (s) => s.castingTime.includes('Action') && !s.castingTime.includes('Bonus'),
+    'Bonus Action': (s) => s.castingTime.includes('Bonus Action'),
+    'Reaction': (s) => s.castingTime.includes('Reaction'),
+    'Touch': (s) => s.range === 'Touch',
+    'Damage': (s) => (s.description || '').toLowerCase().includes('damage') || (s.name || '').toLowerCase().includes('smite')
 };
 
 // Ensure new structure elements exist and master lists are up to date
@@ -219,6 +246,25 @@ function renderLimitedUseOverview(parent) {
     section.className = 'extra-section';
     section.innerHTML = '<h3>Limited Use</h3>';
 
+    // Spell Slots
+    for (let lvl in state.spells.slots) {
+        const slot = state.spells.slots[lvl];
+        const item = document.createElement('div');
+        item.className = 'limited-use-stats-item';
+        item.innerHTML = `
+            <span class="feat-name" onclick="document.querySelector('[data-tab=\'spells\']').click()">Spell Slots Lvl ${lvl}</span>
+            <div class="uses">
+                <div class="limited-use">
+                    ${Array.from({ length: slot.max }).map((_, i) => `
+                        <input type="checkbox" ${i < slot.used ? 'checked' : ''} onclick="toggleSpellSlot(${lvl}, ${i})">
+                    `).join('')}
+                    <span>(longRest)</span>
+                </div>
+            </div>
+        `;
+        section.appendChild(item);
+    }
+
     state.features.forEach((feat, index) => {
         if (feat.limitedUse) {
             const item = document.createElement('div');
@@ -257,12 +303,15 @@ function renderSteelDefenderOverview(parent) {
             <div class="sd-stat"><strong>Perc:</strong> ${10 + state.proficiencyBonus}</div>
         </div>
         <div class="sd-actions-minimal">
-            ${sd.actions ? sd.actions.filter(a => a.limitedUse).map((a, i) => `
+            ${sd.actions ? sd.actions.map((a, i) => {
+                if (!a.limitedUse) return '';
+                return `
                 <div class="limited-use-stats-item">
                     <span>${a.name}</span>
                     ${renderLimitedUse(a, 'sd-action', i)}
                 </div>
-            `).join('') : ''}
+                `;
+            }).join('') : ''}
         </div>
     `;
 
@@ -448,13 +497,40 @@ function updateStateByPath(path, value) {
     saveState();
 }
 
-function renderFeatures(filter = '') {
+function renderFeatures(filter = null) {
+    if (filter === null) {
+        const el = document.getElementById('feature-filter');
+        filter = el ? el.value : '';
+    }
+    const filterContainer = document.getElementById('feature-category-filters');
+    if (filterContainer) {
+        filterContainer.innerHTML = '';
+        Object.keys(FEATURE_CATEGORIES).forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = `filter-btn ${uiState.featureFilters.has(cat) ? 'active' : ''}`;
+            btn.innerText = cat;
+            btn.onclick = () => toggleFeatureFilter(cat);
+            filterContainer.appendChild(btn);
+        });
+    }
+
     const container = document.getElementById('features-list');
     container.innerHTML = '';
     state.features.forEach((feat, index) => {
+        // Text filter
         if (filter && !feat.name.toLowerCase().includes(filter.toLowerCase()) && !feat.description.toLowerCase().includes(filter.toLowerCase())) {
             return;
         }
+
+        // Category filter
+        if (uiState.featureFilters.size > 0) {
+            let matchesAny = false;
+            uiState.featureFilters.forEach(cat => {
+                if (FEATURE_CATEGORIES[cat](feat)) matchesAny = true;
+            });
+            if (!matchesAny) return;
+        }
+
         const isExpanded = uiState.expandedFeatures.has(index);
         const item = document.createElement('div');
         item.className = `feature-item ${isExpanded ? 'expanded-item' : ''}`;
@@ -478,7 +554,18 @@ window.toggleFeatureExpanded = (index) => {
     } else {
         uiState.expandedFeatures.add(index);
     }
-    renderFeatures();
+    const val = document.getElementById('feature-filter').value;
+    renderFeatures(val);
+};
+
+window.toggleFeatureFilter = (cat) => {
+    if (uiState.featureFilters.has(cat)) {
+        uiState.featureFilters.delete(cat);
+    } else {
+        uiState.featureFilters.add(cat);
+    }
+    const val = document.getElementById('feature-filter').value;
+    renderFeatures(val);
 };
 
 function renderLimitedUse(obj, type, index) {
@@ -507,7 +594,24 @@ window.toggleLimitedUse = (type, index, useIndex) => {
     renderAll();
 };
 
-function renderSpells(filter = '') {
+function renderSpells(filter = null) {
+    if (filter === null) {
+        const el = document.getElementById('spell-filter');
+        filter = el ? el.value : '';
+    }
+
+    const filterContainer = document.getElementById('spell-category-filters');
+    if (filterContainer) {
+        filterContainer.innerHTML = '';
+        Object.keys(SPELL_FILTERS).forEach(fKey => {
+            const btn = document.createElement('button');
+            btn.className = `filter-btn ${uiState.spellFilters.has(fKey) ? 'active' : ''}`;
+            btn.innerText = fKey;
+            btn.onclick = () => toggleSpellFilter(fKey);
+            filterContainer.appendChild(btn);
+        });
+    }
+
     const slotsDiv = document.getElementById('spell-slots');
     slotsDiv.innerHTML = '<h3>Spell Slots</h3>';
     for (let lvl in state.spells.slots) {
@@ -524,8 +628,28 @@ function renderSpells(filter = '') {
 
     const preparedDiv = document.getElementById('prepared-spells');
     preparedDiv.innerHTML = '<h3>Prepared Spells</h3>';
+
+    const matchesFilters = (spell) => {
+        // Text filter
+        if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase()) && !spell.description.toLowerCase().includes(filter.toLowerCase())) {
+            return false;
+        }
+
+        // Category filters (Additive/AND across groups, OR within groups)
+        for (const group in SPELL_FILTER_GROUPS) {
+            const groupFilters = SPELL_FILTER_GROUPS[group];
+            const activeInGroup = groupFilters.filter(f => uiState.spellFilters.has(f));
+
+            if (activeInGroup.length > 0) {
+                const matchesAnyInGroup = activeInGroup.some(f => SPELL_FILTERS[f](spell));
+                if (!matchesAnyInGroup) return false;
+            }
+        }
+        return true;
+    };
+
     state.spells.prepared.forEach((spell, idx) => {
-        if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase())) return;
+        if (!matchesFilters(spell)) return;
         const isExpanded = uiState.expandedSpells.has('prepared-' + spell.name);
         const sDiv = document.createElement('div');
         sDiv.className = `spell-item ${isExpanded ? 'expanded-item' : ''}`;
@@ -558,7 +682,7 @@ function renderSpells(filter = '') {
     const allSpellsDiv = document.getElementById('all-spells-list');
     allSpellsDiv.innerHTML = '<h3>All Known Spells</h3>';
     state.spells.all.forEach((spell, idx) => {
-        if (filter && !spell.name.toLowerCase().includes(filter.toLowerCase())) return;
+        if (!matchesFilters(spell)) return;
         const isPrepared = state.spells.prepared.some(p => p.name === spell.name);
         if (isPrepared) return;
         const isExpanded = uiState.expandedSpells.has('all-' + spell.name);
@@ -590,6 +714,15 @@ window.toggleSpellExpanded = (id) => {
         uiState.expandedSpells.delete(id);
     } else {
         uiState.expandedSpells.add(id);
+    }
+    renderSpells();
+};
+
+window.toggleSpellFilter = (fKey) => {
+    if (uiState.spellFilters.has(fKey)) {
+        uiState.spellFilters.delete(fKey);
+    } else {
+        uiState.spellFilters.add(fKey);
     }
     renderSpells();
 };

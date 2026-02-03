@@ -450,3 +450,39 @@ input.inline-edit {
 .delete-btn:hover {
     background: rgba(239, 68, 68, 0.1);
 }
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.category-filters {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    background: #222;
+    border: 1px solid #444;
+    color: var(--muted-text);
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+.filter-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--text-color);
+}
+
+.filter-btn.active {
+    background: var(--accent-color);
+    color: #000;
+    border-color: var(--accent-color);
+}
