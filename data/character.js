@@ -25,6 +25,11 @@ export const characterData = {
     speed: 30,
     proficiencyBonus: 3,
     savingThrows: ["con", "int"],
+    traits: [
+        { name: "Poison Resistance", type: "R", note: "Resistance to Poison damage.", source: "Dwarven Resilience" },
+        { name: "Poison Save Advantage", type: "A", note: "Advantage on saving throws to avoid or end the Poisoned condition.", source: "Dwarven Resilience" },
+        { name: "Concentration Advantage", type: "A", note: "Advantage on Con saves for Concentration.", source: "Warcaster" }
+    ],
     skills: {
         acrobatics: { proficient: false, expert: false },
         animalHandling: { proficient: true, expert: false },
