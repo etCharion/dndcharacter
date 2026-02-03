@@ -43,6 +43,61 @@ state.plans.all = characterData.plans.all;
 if (!state.spells) state.spells = characterData.spells;
 state.spells.all = characterData.spells.all;
 
+// Update prepared spells with new descriptions/data from master list
+state.spells.prepared.forEach(ps => {
+    const master = characterData.spells.all.find(s => s.name === ps.name);
+    if (master) {
+        // We want to keep some state like 'used' or 'alwaysPrepared' if they differ,
+        // but for descriptions and other stats, we take the new ones.
+        const { alwaysPrepared, ...masterData } = master;
+        Object.assign(ps, masterData);
+        if (alwaysPrepared !== undefined) ps.alwaysPrepared = alwaysPrepared;
+    }
+});
+
+// Update features with new descriptions from characterData
+state.features.forEach(f => {
+    let master = characterData.features.find(mf => mf.name === f.name);
+    // Handle specific renames
+    if (!master && f.name === "Warcaster") {
+        master = characterData.features.find(mf => mf.name === "War Caster");
+    }
+
+    if (master) {
+        f.name = master.name; // Sync name in case of renames
+        f.description = master.description;
+        if (master.limitedUse) {
+            if (!f.limitedUse) {
+                f.limitedUse = { ...master.limitedUse, used: 0 };
+            } else {
+                f.limitedUse.max = master.limitedUse.max;
+                f.limitedUse.reset = master.limitedUse.reset;
+            }
+        }
+    }
+});
+
+// Add any missing features from characterData (like Spellcasting or Steel Defender)
+characterData.features.forEach(mf => {
+    if (!state.features.some(f => f.name === mf.name)) {
+        state.features.push({ ...mf });
+    }
+});
+
+// Update Steel Defender actions
+if (state.steelDefender && state.steelDefender.actions) {
+    state.steelDefender.actions.forEach(a => {
+        const master = characterData.steelDefender.actions.find(ma => ma.name === a.name);
+        if (master) a.description = master.description;
+    });
+}
+if (state.steelDefender && state.steelDefender.reactions) {
+    state.steelDefender.reactions.forEach(r => {
+        const master = characterData.steelDefender.reactions.find(mr => mr.name === r.name);
+        if (master) r.description = master.description;
+    });
+}
+
 if (!state.traits) state.traits = characterData.traits || [];
 
 if (state.initiative === undefined) state.initiative = characterData.initiative || 0;
@@ -844,10 +899,10 @@ function renderSteelDefender() {
             ${sd.actions.map((a, i) => {
                 let desc = a.description;
                 if (a.name === "Force-Empowered Rend") {
-                    desc = `Melee Attack Roll: +${pb + intMod} to hit, reach 5 ft. Hit: 1d8 + ${pb} force damage.`;
+                    desc = `Melee Attack Roll: +${pb + intMod} to hit, reach 5 ft. Hit: 1d8 + ${2 + intMod} force damage.`;
                 }
                 if (a.name === "Repair (3/Day)") {
-                    desc = `The defender, or one Construct or object it can see within 5 feet of it, regains 2d8 + ${pb} HP.`;
+                    desc = `The defender, or one Construct or object it can see within 5 feet of it, regains 2d8 + ${intMod} HP.`;
                 }
                 return `
                 <div class="sd-action">
