@@ -40,7 +40,10 @@
 
         <!-- Features Tab -->
         <section id="features" class="tab-content">
-            <input type="text" id="feature-filter" placeholder="Filter features..." onkeyup="filterFeatures()">
+            <div class="filter-row">
+                <input type="text" id="feature-filter" placeholder="Filter features..." onkeyup="filterFeatures()">
+                <div id="feature-category-filters" class="category-filters"></div>
+            </div>
             <div id="features-list" class="features-list"></div>
         </section>
 
@@ -48,7 +51,10 @@
         <section id="spells" class="tab-content">
             <div id="spell-slots"></div>
             <div class="spell-filters">
-                <input type="text" id="spell-filter" placeholder="Filter spells..." onkeyup="filterSpells()">
+                <div class="filter-row">
+                    <input type="text" id="spell-filter" placeholder="Filter spells..." onkeyup="filterSpells()">
+                    <div id="spell-category-filters" class="category-filters"></div>
+                </div>
             </div>
             <div id="prepared-spells"></div>
             <hr>
