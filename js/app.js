@@ -443,7 +443,7 @@ function renderTraitsOverview(parent) {
                 <span class="delete-btn" onclick="event.stopPropagation(); deleteTrait(${index})">×</span>
             </div>
             <div class="trait-body ${isExpanded ? '' : 'hidden'}">
-                <div class="editable" data-field="traits.${index}.note">${trait.note || 'No note.'}</div>
+                <div class="editable" data-field="traits.${index}.note" data-type="textarea">${trait.note || 'No note.'}</div>
                 <div class="trait-source">Source: <span class="editable" data-field="traits.${index}.source">${trait.source || 'Unknown'}</span></div>
                 <div class="trait-type-selector">
                     Type: <select onchange="updateTraitType(${index}, this.value)">
@@ -549,30 +549,45 @@ function getAbilityForSkill(skill) {
 
 function attachInlineEdit(element, field, isNumeric = false) {
     element.addEventListener('click', () => {
-        if (element.querySelector('input')) return;
+        if (element.querySelector('input') || element.querySelector('textarea')) return;
 
         const originalValue = element.innerText.replace('+', '').split('/')[0].trim();
-        const input = document.createElement('input');
-        input.type = isNumeric ? 'number' : 'text';
+        const type = element.dataset.type || (isNumeric ? 'number' : 'text');
+
+        const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
+        if (type !== 'textarea') {
+            input.type = type;
+        }
         input.value = originalValue;
         input.className = 'inline-edit';
+        if (type !== 'number') {
+            input.classList.add('inline-edit-large');
+        }
 
         const oldContent = element.innerHTML;
         element.innerHTML = '';
         element.appendChild(input);
         input.focus();
-        input.select();
+        if (type !== 'textarea') {
+            input.select();
+        }
 
         const save = () => {
             let newValue = input.value;
-            if (isNumeric) newValue = parseInt(newValue) || 0;
+            if (type === 'number') newValue = parseInt(newValue) || 0;
             updateStateByPath(field, newValue);
             renderAll();
         };
 
         input.addEventListener('blur', save);
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') save();
+            if (e.key === 'Enter') {
+                if (type !== 'textarea') {
+                    save();
+                } else if (e.ctrlKey) {
+                    save();
+                }
+            }
             if (e.key === 'Escape') {
                 element.innerHTML = oldContent;
                 renderAll();
@@ -1210,7 +1225,7 @@ function renderPlans(filter = '') {
                 </div>
                 <div class="plan-desc ${isExpanded ? '' : 'hidden'}">
                     <div><em>${plan.type}</em></div>
-                    <div class="editable" data-field="plans.prepared.${idx}.description">${plan.description}</div>
+                    <div class="editable" data-field="plans.prepared.${idx}.description" data-type="textarea">${plan.description}</div>
                 </div>
             </div>
         `;

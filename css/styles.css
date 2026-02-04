@@ -424,7 +424,7 @@ button:hover { background: var(--accent-color); color: #000; }
     background: rgba(255,255,255,0.05);
 }
 
-input.inline-edit {
+.inline-edit {
     background: #000;
     color: var(--neon-cyan);
     border: 1px solid var(--accent-color);
@@ -432,7 +432,21 @@ input.inline-edit {
     text-align: inherit;
     font-family: inherit;
     font-size: inherit;
+    box-sizing: border-box;
+}
+
+input.inline-edit {
     width: 60px;
+}
+
+.inline-edit-large {
+    width: 100% !important;
+}
+
+textarea.inline-edit {
+    min-height: 100px;
+    display: block;
+    resize: vertical;
 }
 
 .proficiency-toggle {
