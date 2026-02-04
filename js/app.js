@@ -1,6 +1,11 @@
 import { characterData } from '../data/character.js';
+import { auth, db, googleProvider } from './firebase-config.js';
+import { onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-let state = JSON.parse(localStorage.getItem('dnd_char_state')) || { ...characterData };
+let state = { ...characterData };
+let currentUser = null;
+let saveTimeout = null;
 
 let uiState = {
     expandedFeatures: new Set(),
@@ -42,108 +47,160 @@ const SPELL_FILTERS = {
     'Damage': (s) => (s.description || '').toLowerCase().includes('damage') || (s.name || '').toLowerCase().includes('smite')
 };
 
-// Ensure new structure elements exist and master lists are up to date
-if (!state.plans) state.plans = characterData.plans;
-state.plans.all = characterData.plans.all;
+// Helper to sync state with characterData (for updates/new features)
+function syncStateWithMasterData(targetState) {
+    if (!targetState.plans) targetState.plans = characterData.plans;
+    targetState.plans.all = characterData.plans.all;
 
-if (!state.spells) state.spells = characterData.spells;
-state.spells.all = characterData.spells.all;
+    if (!targetState.spells) targetState.spells = characterData.spells;
+    targetState.spells.all = characterData.spells.all;
 
-// Update prepared spells with new descriptions/data from master list
-state.spells.prepared.forEach(ps => {
-    const master = characterData.spells.all.find(s => s.name === ps.name);
-    if (master) {
-        // We want to keep some state like 'used' or 'alwaysPrepared' if they differ,
-        // but for descriptions and other stats, we take the new ones.
-        const { alwaysPrepared, ...masterData } = master;
-        Object.assign(ps, masterData);
-        if (alwaysPrepared !== undefined) ps.alwaysPrepared = alwaysPrepared;
-    }
-});
-
-// Update features with new descriptions from characterData
-state.features.forEach(f => {
-    let master = characterData.features.find(mf => mf.name === f.name);
-    // Handle specific renames
-    if (!master && f.name === "Warcaster") {
-        master = characterData.features.find(mf => mf.name === "War Caster");
-    }
-
-    if (master) {
-        f.name = master.name; // Sync name in case of renames
-        f.description = master.description;
-        f.level = master.level;
-        f.actions = master.actions; // Sync actions
-        if (master.limitedUse) {
-            if (!f.limitedUse) {
-                f.limitedUse = { ...master.limitedUse, used: 0 };
-            } else {
-                f.limitedUse.max = master.limitedUse.max;
-                f.limitedUse.reset = master.limitedUse.reset;
-            }
-        }
-    }
-});
-
-// Add any missing features from characterData (like Spellcasting or Steel Defender)
-characterData.features.forEach(mf => {
-    if (!state.features.some(f => f.name === mf.name)) {
-        state.features.push({ ...mf });
-    }
-});
-
-// Update Steel Defender and add missing properties
-if (state.steelDefender) {
-    // Sync actions
-    if (state.steelDefender.actions) {
-        state.steelDefender.actions.forEach(a => {
-            const master = characterData.steelDefender.actions.find(ma => ma.name === a.name);
-            if (master) a.description = master.description;
-        });
-    } else {
-        state.steelDefender.actions = characterData.steelDefender.actions;
-    }
-
-    // Sync reactions
-    if (state.steelDefender.reactions) {
-        state.steelDefender.reactions.forEach(r => {
-            const master = characterData.steelDefender.reactions.find(mr => mr.name === r.name);
-            if (master) r.description = master.description;
-        });
-    } else {
-        state.steelDefender.reactions = characterData.steelDefender.reactions;
-    }
-
-    // Ensure other new properties exist
-    ['immunities', 'senses', 'languages', 'traits', 'hitDice'].forEach(prop => {
-        if (state.steelDefender[prop] === undefined) {
-            state.steelDefender[prop] = characterData.steelDefender[prop];
+    targetState.spells.prepared.forEach(ps => {
+        const master = characterData.spells.all.find(s => s.name === ps.name);
+        if (master) {
+            const { alwaysPrepared, ...masterData } = master;
+            Object.assign(ps, masterData);
+            if (alwaysPrepared !== undefined) ps.alwaysPrepared = alwaysPrepared;
         }
     });
-}
 
-if (!state.traits) state.traits = characterData.traits || [];
+    targetState.features.forEach(f => {
+        let master = characterData.features.find(mf => mf.name === f.name);
+        if (!master && f.name === "Warcaster") {
+            master = characterData.features.find(mf => mf.name === "War Caster");
+        }
+        if (master) {
+            f.name = master.name;
+            f.description = master.description;
+            f.level = master.level;
+            f.actions = master.actions;
+            if (master.limitedUse) {
+                if (!f.limitedUse) {
+                    f.limitedUse = { ...master.limitedUse, used: 0 };
+                } else {
+                    f.limitedUse.max = master.limitedUse.max;
+                    f.limitedUse.reset = master.limitedUse.reset;
+                }
+            }
+        }
+    });
 
-if (state.initiative === undefined) state.initiative = characterData.initiative || 0;
-if (state.speed === undefined) state.speed = characterData.speed || 30;
-if (state.spellSaveDC === undefined) state.spellSaveDC = characterData.spellSaveDC || 8;
-if (state.spellAttackBonus === undefined) state.spellAttackBonus = characterData.spellAttackBonus || 0;
+    characterData.features.forEach(mf => {
+        if (!targetState.features.some(f => f.name === mf.name)) {
+            targetState.features.push({ ...mf });
+        }
+    });
 
-// Ensure all skills from characterData are present in state
-for (let skill in characterData.skills) {
-    if (!state.skills[skill]) {
-        state.skills[skill] = { ...characterData.skills[skill] };
+    if (targetState.steelDefender) {
+        if (targetState.steelDefender.actions) {
+            targetState.steelDefender.actions.forEach(a => {
+                const master = characterData.steelDefender.actions.find(ma => ma.name === a.name);
+                if (master) a.description = master.description;
+            });
+        } else {
+            targetState.steelDefender.actions = characterData.steelDefender.actions;
+        }
+        if (targetState.steelDefender.reactions) {
+            targetState.steelDefender.reactions.forEach(r => {
+                const master = characterData.steelDefender.reactions.find(mr => mr.name === r.name);
+                if (master) r.description = master.description;
+            });
+        } else {
+            targetState.steelDefender.reactions = characterData.steelDefender.reactions;
+        }
+        ['immunities', 'senses', 'languages', 'traits', 'hitDice'].forEach(prop => {
+            if (targetState.steelDefender[prop] === undefined) {
+                targetState.steelDefender[prop] = characterData.steelDefender[prop];
+            }
+        });
+    }
+
+    if (!targetState.traits) targetState.traits = characterData.traits || [];
+    if (targetState.initiative === undefined) targetState.initiative = characterData.initiative || 0;
+    if (targetState.speed === undefined) targetState.speed = characterData.speed || 30;
+    if (targetState.spellSaveDC === undefined) targetState.spellSaveDC = characterData.spellSaveDC || 8;
+    if (targetState.spellAttackBonus === undefined) targetState.spellAttackBonus = characterData.spellAttackBonus || 0;
+
+    for (let skill in characterData.skills) {
+        if (!targetState.skills[skill]) {
+            targetState.skills[skill] = { ...characterData.skills[skill] };
+        }
     }
 }
 
 function saveState() {
-    localStorage.setItem('dnd_char_state', JSON.stringify(state));
+    if (!currentUser) return;
+
+    // Debounce saves to Firestore
+    if (saveTimeout) clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(async () => {
+        try {
+            await setDoc(doc(db, "users", currentUser.uid), state);
+            console.log("State saved to Firestore");
+        } catch (e) {
+            console.error("Error saving state: ", e);
+        }
+    }, 1000);
 }
 
-function init() {
-    renderTabs();
-    renderAll();
+async function init() {
+    setupAuth();
     setupEventListeners();
+    renderTabs();
+}
+
+function setupAuth() {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            document.getElementById('user-email').innerText = user.email;
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+
+            await loadState(user.uid);
+            renderAll();
+        } else {
+            currentUser = null;
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('app-container').classList.add('hidden');
+        }
+    });
+
+    document.getElementById('login-btn').addEventListener('click', () => {
+        signInWithPopup(auth, googleProvider);
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        signOut(auth);
+    });
+
+    document.getElementById('switch-account-btn').addEventListener('click', () => {
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
+        signInWithPopup(auth, googleProvider);
+    });
+}
+
+async function loadState(uid) {
+    const docRef = doc(db, "users", uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+        state = docSnap.data();
+        syncStateWithMasterData(state);
+    } else {
+        // Migration from LocalStorage or New User
+        const localData = localStorage.getItem('dnd_char_state');
+        if (localData) {
+            state = JSON.parse(localData);
+            console.log("Migrated data from LocalStorage");
+        } else {
+            state = { ...characterData };
+            console.log("New user, using default characterData");
+        }
+        syncStateWithMasterData(state);
+        // Save initial state to Firestore
+        await setDoc(docRef, state);
+    }
 }
 
 function setupEventListeners() {
