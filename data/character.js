@@ -188,12 +188,17 @@ export const characterData = {
         { name: "Pouch", type: "gear", weight: 1, cost: "5 sp" },
         { name: "Pouch", type: "gear", weight: 1, cost: "5 sp" },
         { name: "Traveler's Clothes", type: "gear", weight: 4, cost: "2 gp" },
-        { name: "Warhammer", type: "weapon", properties: "Versatile (1d10)", weight: 2, cost: "15 gp", equipped: true },
+        { name: "Warhammer", type: "weapon", properties: "Versatile (1d10)", weight: 2, cost: "15 gp", equipped: true, preferredStat: "int" },
         { name: "Half Plate", type: "armor", properties: "AC 15 + Dex (max 2)", weight: 40, cost: "750 gp", equipped: true },
         { name: "Shield", type: "armor", properties: "AC +2", weight: 6, cost: "10 gp", equipped: true }
     ],
     money: {
         cp: 0, sp: 0, gp: 22, ep: 0, pp: 0
+    },
+    settings: {
+        featureSort: 'name',
+        spellSort: 'level',
+        planSort: 'name'
     },
     initiative: 3,
     speed: 30,

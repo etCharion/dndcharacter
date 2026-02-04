@@ -297,6 +297,19 @@ button:hover { background: var(--accent-color); color: #000; }
     border: 1px solid #222;
 }
 
+.attack-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.attack-details {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9rem;
+}
+
 .combat-actions-vertical {
     display: flex;
     flex-direction: column;
@@ -697,6 +710,82 @@ textarea.inline-edit {
     background: var(--accent-color);
     color: #000;
     border-color: var(--accent-color);
+}
+
+.sort-select {
+    background: #111;
+    border: 1px solid #444;
+    color: #d4af37; /* Gold/Brass color */
+    padding: 3px 8px;
+    font-size: 0.75rem;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.sort-select:hover {
+    border-color: #d4af37;
+}
+
+.sort-label {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    margin-right: 5px;
+}
+
+.attack-tooltip-trigger {
+    position: relative;
+    cursor: help;
+}
+
+.attack-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: #1a1a1a;
+    border: 1px solid #d4af37;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    margin-bottom: 5px;
+}
+
+.attack-tooltip-trigger:hover .attack-tooltip {
+    opacity: 1;
+}
+
+.attack-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 10px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #d4af37 transparent transparent transparent;
+}
+
+.stat-toggle {
+    background: #222;
+    border: 1px solid #444;
+    color: var(--muted-text);
+    padding: 2px 5px;
+    font-size: 0.7rem;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+.stat-toggle.active {
+    background: #d4af37;
+    color: #000;
+    border-color: #d4af37;
 }
 
 hr {
