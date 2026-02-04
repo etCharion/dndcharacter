@@ -248,8 +248,6 @@ header {
 
 .feature-body, .spell-desc { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
 
-.hidden { display: none; }
-
 .limited-use { margin-top: 5px; }
 .limited-use input { margin-right: 2px; }
 
@@ -346,8 +344,8 @@ button:hover { background: var(--accent-color); color: #000; }
     color: var(--muted-text);
 }
 
-.action-category:not(.collapsed) .collapse-icon {
-    transform: rotate(90deg);
+.action-category.collapsed .collapse-icon {
+    transform: rotate(-90deg);
 }
 
 .actions-container {
@@ -680,3 +678,5 @@ input.inline-edit {
     color: #000;
     border-color: var(--accent-color);
 }
+
+.hidden { display: none !important; }
