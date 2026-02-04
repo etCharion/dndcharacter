@@ -246,7 +246,13 @@ header {
 .spell-preview { font-size: 0.8rem; color: var(--muted-text); flex-grow: 1; }
 .spell-actions { display: flex; gap: 5px; }
 
-.feature-body, .spell-desc { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
+.feature-body, .spell-desc, .plan-desc { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
+
+.feature-body, .spell-desc, .plan-desc, .trait-body, .sd-trait, .sd-action, .action-preview, .sd-detail-item {
+    font-family: system-ui, -apple-system, sans-serif;
+    line-height: 1.5;
+    color: #e0e0e0;
+}
 
 .limited-use { margin-top: 5px; }
 .limited-use input { margin-right: 2px; }
@@ -691,6 +697,12 @@ textarea.inline-edit {
     background: var(--accent-color);
     color: #000;
     border-color: var(--accent-color);
+}
+
+hr {
+    margin: 40px 0;
+    border: none;
+    border-top: 1px solid var(--border-color);
 }
 
 .hidden { display: none !important; }
