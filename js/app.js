@@ -19,7 +19,8 @@ let uiState = {
         actions: true,
         'bonus-actions': false,
         reactions: false
-    }
+    },
+    tooltips: {}
 };
 
 const FEATURE_CATEGORIES = {
@@ -49,6 +50,14 @@ const SPELL_FILTERS = {
 
 // Helper to sync state with characterData (for updates/new features)
 function syncStateWithMasterData(targetState) {
+    if (!targetState.settings) {
+        targetState.settings = {
+            featureSort: 'name',
+            spellSort: 'level',
+            planSort: 'name'
+        };
+    }
+
     if (!targetState.plans) targetState.plans = characterData.plans;
     targetState.plans.all = characterData.plans.all;
 
@@ -132,6 +141,12 @@ function syncStateWithMasterData(targetState) {
             targetState.skills[skill] = { ...characterData.skills[skill] };
         }
     }
+
+    targetState.inventory.forEach(item => {
+        if (item.type === 'weapon' && !item.preferredStat) {
+            item.preferredStat = 'int'; // Default for Battle Smith
+        }
+    });
 }
 
 function saveState() {
@@ -698,6 +713,24 @@ function renderFeatures(filter = null) {
         const el = document.getElementById('feature-filter');
         filter = el ? el.value : '';
     }
+
+    const tabEl = document.getElementById('features');
+    let sortRow = tabEl.querySelector('.sort-row');
+    if (!sortRow) {
+        sortRow = document.createElement('div');
+        sortRow.className = 'sort-row';
+        sortRow.style.marginBottom = '15px';
+        tabEl.querySelector('.filter-row').after(sortRow);
+    }
+    sortRow.innerHTML = `
+        <span class="sort-label">Sort by:</span>
+        <select class="sort-select" onchange="updateSort('feature', this.value)">
+            <option value="name" ${state.settings.featureSort === 'name' ? 'selected' : ''}>Name</option>
+            <option value="level" ${state.settings.featureSort === 'level' ? 'selected' : ''}>Level</option>
+            <option value="source" ${state.settings.featureSort === 'source' ? 'selected' : ''}>Type (Source)</option>
+        </select>
+    `;
+
     const filterContainer = document.getElementById('feature-category-filters');
     if (filterContainer) {
         filterContainer.innerHTML = '';
@@ -716,17 +749,17 @@ function renderFeatures(filter = null) {
     // Create a copy for sorting/filtering
     const sortedFeatures = state.features.map((f, i) => ({ ...f, originalIndex: i }));
 
-    // Sort: Class and Subclass features by level
+    const featureSort = state.settings.featureSort;
     sortedFeatures.sort((a, b) => {
-        const isAClass = a.source.includes('Artificer') || a.source.includes('Battle Smith');
-        const isBClass = b.source.includes('Artificer') || b.source.includes('Battle Smith');
-
-        if (isAClass && isBClass) {
-            return (a.level || 0) - (b.level || 0);
+        if (featureSort === 'level') {
+            if ((a.level || 0) !== (b.level || 0)) return (a.level || 0) - (b.level || 0);
+            return a.name.localeCompare(b.name);
         }
-        // Keep original order for others, or prioritize race/feats?
-        // Let's just sort everything by level if available, but keep Class focus.
-        return (a.level || 0) - (b.level || 0);
+        if (featureSort === 'source') {
+            if (a.source !== b.source) return a.source.localeCompare(b.source);
+            return a.name.localeCompare(b.name);
+        }
+        return a.name.localeCompare(b.name);
     });
 
     sortedFeatures.forEach((feat) => {
@@ -783,6 +816,14 @@ window.toggleFeatureFilter = (cat) => {
     renderFeatures(val);
 };
 
+window.updateSort = (type, value) => {
+    state.settings[`${type}Sort`] = value;
+    saveState();
+    if (type === 'feature') renderFeatures();
+    if (type === 'spell') renderSpells();
+    if (type === 'plan') renderPlans();
+};
+
 function renderLimitedUse(obj, type, index) {
     let html = '<div class="limited-use">';
     const used = obj.limitedUse.used || 0;
@@ -809,11 +850,84 @@ window.toggleLimitedUse = (type, index, useIndex) => {
     renderAll();
 };
 
+const CASTING_TIME_ORDER = {
+    '1 Action': 1,
+    '1 Bonus Action': 2,
+    '1 Reaction': 3,
+    '1 Minute': 4,
+    '10 Minutes': 5,
+    '1 Hour': 6,
+    'Ritual': 7
+};
+
+function getCastingTimeValue(time) {
+    if (time.includes('Action') && !time.includes('Bonus')) return 1;
+    if (time.includes('Bonus Action')) return 2;
+    if (time.includes('Reaction')) return 3;
+    if (time.toLowerCase().includes('ritual') && !time.includes('Action')) return 7;
+    const minutes = time.match(/(\d+) [Mm]inute/);
+    if (minutes) return 10 + parseInt(minutes[1]);
+    const hours = time.match(/(\d+) [Hh]our/);
+    if (hours) return 100 + parseInt(hours[1]);
+    return 999;
+}
+
+function getRangeValue(range) {
+    if (range.toLowerCase() === 'self') return 0;
+    if (range.toLowerCase() === 'touch') return 1;
+    const feet = range.match(/(\d+) [Ff]eet/);
+    if (feet) return parseInt(feet[1]);
+    const miles = range.match(/(\d+) [Mm]ile/);
+    if (miles) return parseInt(miles[1]) * 5280;
+    return 999999;
+}
+
+function sortSpells(spells) {
+    const spellSort = state.settings.spellSort;
+    return [...spells].sort((a, b) => {
+        if (spellSort === 'level') {
+            if (a.level !== b.level) return a.level - b.level;
+            return a.name.localeCompare(b.name);
+        }
+        if (spellSort === 'castingTime') {
+            const valA = getCastingTimeValue(a.castingTime);
+            const valB = getCastingTimeValue(b.castingTime);
+            if (valA !== valB) return valA - valB;
+            return a.name.localeCompare(b.name);
+        }
+        if (spellSort === 'range') {
+            const valA = getRangeValue(a.range);
+            const valB = getRangeValue(b.range);
+            if (valA !== valB) return valA - valB;
+            return a.name.localeCompare(b.name);
+        }
+        return a.name.localeCompare(b.name);
+    });
+}
+
 function renderSpells(filter = null) {
     if (filter === null) {
         const el = document.getElementById('spell-filter');
         filter = el ? el.value : '';
     }
+
+    const tabEl = document.getElementById('spells');
+    let sortRow = tabEl.querySelector('.sort-row-spells');
+    if (!sortRow) {
+        sortRow = document.createElement('div');
+        sortRow.className = 'sort-row-spells';
+        sortRow.style.marginBottom = '15px';
+        tabEl.querySelector('.spell-filters').appendChild(sortRow);
+    }
+    sortRow.innerHTML = `
+        <span class="sort-label">Sort by:</span>
+        <select class="sort-select" onchange="updateSort('spell', this.value)">
+            <option value="name" ${state.settings.spellSort === 'name' ? 'selected' : ''}>Name</option>
+            <option value="level" ${state.settings.spellSort === 'level' ? 'selected' : ''}>Level</option>
+            <option value="castingTime" ${state.settings.spellSort === 'castingTime' ? 'selected' : ''}>Casting Time</option>
+            <option value="range" ${state.settings.spellSort === 'range' ? 'selected' : ''}>Range</option>
+        </select>
+    `;
 
     const filterContainer = document.getElementById('spell-category-filters');
     if (filterContainer) {
@@ -863,8 +977,10 @@ function renderSpells(filter = null) {
         return true;
     };
 
-    state.spells.prepared.forEach((spell, idx) => {
+    const sortedPrepared = sortSpells(state.spells.prepared);
+    sortedPrepared.forEach((spell) => {
         if (!matchesFilters(spell)) return;
+        const originalIdx = state.spells.prepared.findIndex(p => p.name === spell.name);
         const isExpanded = uiState.expandedSpells.has('prepared-' + spell.name);
         const sDiv = document.createElement('div');
         sDiv.className = `spell-item ${isExpanded ? 'expanded-item' : ''}`;
@@ -872,8 +988,8 @@ function renderSpells(filter = null) {
         const comps = spell.components ? spell.components.split('(')[0].trim() : '';
         const previewInfo = `Lvl ${spell.level} | ${spell.castingTime} | ${spell.range} | ${spell.duration} | ${comps}`;
 
-        const castBtn = spell.level > 0 ? `<button onclick="event.stopPropagation(); castSpell(${idx})">Cast</button>` : '';
-        const unprepareBtn = (spell.alwaysPrepared || spell.level === 0) ? '' : `<button onclick="event.stopPropagation(); unprepareSpell(${idx})">Unprepare</button>`;
+        const castBtn = spell.level > 0 ? `<button onclick="event.stopPropagation(); castSpell(${originalIdx})">Cast</button>` : '';
+        const unprepareBtn = (spell.alwaysPrepared || spell.level === 0) ? '' : `<button onclick="event.stopPropagation(); unprepareSpell(${originalIdx})">Unprepare</button>`;
 
         sDiv.innerHTML = `
             <div onclick="toggleSpellExpanded('prepared-${spell.name}')">
@@ -896,10 +1012,12 @@ function renderSpells(filter = null) {
 
     const allSpellsDiv = document.getElementById('all-spells-list');
     allSpellsDiv.innerHTML = '<h3>All Known Spells</h3>';
-    state.spells.all.forEach((spell, idx) => {
+    const sortedAll = sortSpells(state.spells.all);
+    sortedAll.forEach((spell) => {
         if (!matchesFilters(spell)) return;
         const isPrepared = state.spells.prepared.some(p => p.name === spell.name);
         if (isPrepared) return;
+        const originalIdx = state.spells.all.findIndex(s => s.name === spell.name);
         const isExpanded = uiState.expandedSpells.has('all-' + spell.name);
         const sDiv = document.createElement('div');
         sDiv.className = `spell-item-all ${isExpanded ? 'expanded-item' : ''}`;
@@ -912,7 +1030,7 @@ function renderSpells(filter = null) {
                 <div class="spell-header">
                     <strong>${spell.name}</strong>
                     <span class="spell-preview">${previewInfo}</span>
-                    <button onclick="event.stopPropagation(); prepareSpell(${idx})">Prepare</button>
+                    <button onclick="event.stopPropagation(); prepareSpell(${originalIdx})">Prepare</button>
                 </div>
                 <div class="spell-desc ${isExpanded ? '' : 'hidden'}">
                     <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
@@ -1119,19 +1237,45 @@ function renderInventory() {
 
     const attackDiv = document.getElementById('attacks-list');
     attackDiv.innerHTML = '';
-    state.inventory.filter(i => i.type === 'weapon' && i.equipped).forEach(w => {
+    state.inventory.forEach((w, idx) => {
+        if (w.type !== 'weapon' || !w.equipped) return;
+
         const aDiv = document.createElement('div');
         aDiv.className = 'attack-item';
-        const intMod = Math.floor((state.stats.int - 10) / 2);
-        const hit = state.proficiencyBonus + intMod;
+
+        const prefStat = w.preferredStat || 'int';
+        const statMod = Math.floor((state.stats[prefStat] - 10) / 2);
+        const hit = state.proficiencyBonus + statMod;
+
         aDiv.innerHTML = `
-            <strong>${w.name}</strong>
-            <span>Hit: +${hit}</span>
-            <span>Damage: ${w.properties} + ${intMod}</span>
+            <div class="attack-header">
+                <strong>${w.name}</strong>
+                <div class="stat-toggles">
+                    <button class="stat-toggle ${prefStat === 'str' ? 'active' : ''}" onclick="updateWeaponStat(${idx}, 'str')">STR</button>
+                    <button class="stat-toggle ${prefStat === 'dex' ? 'active' : ''}" onclick="updateWeaponStat(${idx}, 'dex')">DEX</button>
+                    <button class="stat-toggle ${prefStat === 'int' ? 'active' : ''}" onclick="updateWeaponStat(${idx}, 'int')">INT</button>
+                </div>
+            </div>
+            <div class="attack-details">
+                <span class="attack-tooltip-trigger">
+                    Hit: +${hit}
+                    <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = +${hit}</div>
+                </span>
+                <span class="attack-tooltip-trigger">
+                    Damage: ${w.properties} ${statMod >= 0 ? '+' : ''}${statMod}
+                    <div class="attack-tooltip">Damage: ${w.properties} + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod})</div>
+                </span>
+            </div>
         `;
         attackDiv.appendChild(aDiv);
     });
 }
+
+window.updateWeaponStat = (idx, stat) => {
+    state.inventory[idx].preferredStat = stat;
+    saveState();
+    renderAll();
+};
 
 window.updateItem = (idx, field, val) => {
     state.inventory[idx][field] = val;
@@ -1276,10 +1420,30 @@ window.filterSpells = () => {
 
 
 function renderPlans(filter = '') {
+    const tabEl = document.getElementById('plans');
+    let sortRow = tabEl.querySelector('.sort-row');
+    if (!sortRow) {
+        sortRow = document.createElement('div');
+        sortRow.className = 'sort-row';
+        sortRow.style.marginBottom = '15px';
+        tabEl.querySelector('.plan-filters').after(sortRow);
+    }
+    sortRow.innerHTML = `
+        <span class="sort-label">Sort by:</span>
+        <select class="sort-select" onchange="updateSort('plan', this.value)">
+            <option value="name" ${state.settings.planSort === 'name' ? 'selected' : ''}>Name</option>
+            <option value="level" ${state.settings.planSort === 'level' ? 'selected' : ''}>Level</option>
+            <option value="rarity" ${state.settings.planSort === 'rarity' ? 'selected' : ''}>Rarity</option>
+            <option value="type" ${state.settings.planSort === 'type' ? 'selected' : ''}>Type</option>
+        </select>
+    `;
+
     const preparedDiv = document.getElementById('prepared-plans');
     preparedDiv.innerHTML = '<h3>Prepared Plans</h3>';
-    state.plans.prepared.forEach((plan, idx) => {
+    const sortedPrepared = sortPlans(state.plans.prepared);
+    sortedPrepared.forEach((plan) => {
         if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
+        const idx = state.plans.prepared.findIndex(p => p.name === plan.name && p.description === plan.description);
         const isExpanded = uiState.expandedPlans.has('prepared-' + idx);
         const pDiv = document.createElement('div');
         pDiv.className = `spell-item ${isExpanded ? 'expanded-item' : ''}`;
@@ -1309,13 +1473,15 @@ function renderPlans(filter = '') {
 
     const allPlansDiv = document.getElementById('all-plans-list');
     allPlansDiv.innerHTML = '<h3>All Magic Item Plans</h3>';
-    state.plans.all.forEach((plan, idx) => {
+    const sortedAll = sortPlans(state.plans.all);
+    sortedAll.forEach((plan) => {
         if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
 
         // Only skip if it's already prepared AND it's NOT a "Common magic item"
         const isPrepared = state.plans.prepared.some(p => p.name === plan.name);
         if (isPrepared && plan.name !== "Common magic item") return;
 
+        const idx = state.plans.all.findIndex(p => p.name === plan.name);
         const isExpanded = uiState.expandedPlans.has('all-' + idx);
         const pDiv = document.createElement('div');
         pDiv.className = `spell-item-all ${isExpanded ? 'expanded-item' : ''}`;
@@ -1349,6 +1515,35 @@ window.togglePlanExpanded = (id) => {
     renderPlans();
 };
 
+const RARITY_ORDER = {
+    'Common': 1,
+    'Uncommon': 2,
+    'Rare': 3,
+    'Very Rare': 4,
+    'Legendary': 5
+};
+
+function sortPlans(plans) {
+    const planSort = state.settings.planSort;
+    return [...plans].sort((a, b) => {
+        if (planSort === 'level') {
+            if ((a.level || 0) !== (b.level || 0)) return (a.level || 0) - (b.level || 0);
+            return a.name.localeCompare(b.name);
+        }
+        if (planSort === 'rarity') {
+            const valA = RARITY_ORDER[a.rarity] || 99;
+            const valB = RARITY_ORDER[b.rarity] || 99;
+            if (valA !== valB) return valA - valB;
+            return a.name.localeCompare(b.name);
+        }
+        if (planSort === 'type') {
+            if (a.type !== b.type) return a.type.localeCompare(b.type);
+            return a.name.localeCompare(b.name);
+        }
+        return a.name.localeCompare(b.name);
+    });
+}
+
 window.filterPlans = () => {
     const val = document.getElementById('plan-filter').value;
     renderPlans(val);
@@ -1377,3 +1572,7 @@ function renderAll() {
 }
 
 init();
+
+// Expose for testing
+window.__RENDER_ALL__ = renderAll;
+window.__STATE__ = state;
