@@ -73,7 +73,9 @@ function syncStateWithMasterData(targetState) {
             f.name = master.name;
             f.description = master.description;
             f.level = master.level;
-            f.actions = master.actions;
+            if (master.actions) f.actions = master.actions;
+            else delete f.actions;
+
             if (master.limitedUse) {
                 if (!f.limitedUse) {
                     f.limitedUse = { ...master.limitedUse, used: 0 };
@@ -81,6 +83,8 @@ function syncStateWithMasterData(targetState) {
                     f.limitedUse.max = master.limitedUse.max;
                     f.limitedUse.reset = master.limitedUse.reset;
                 }
+            } else {
+                delete f.limitedUse;
             }
         }
     });
@@ -97,19 +101,21 @@ function syncStateWithMasterData(targetState) {
                 const master = characterData.steelDefender.actions.find(ma => ma.name === a.name);
                 if (master) a.description = master.description;
             });
-        } else {
+        } else if (characterData.steelDefender.actions) {
             targetState.steelDefender.actions = characterData.steelDefender.actions;
         }
+
         if (targetState.steelDefender.reactions) {
             targetState.steelDefender.reactions.forEach(r => {
                 const master = characterData.steelDefender.reactions.find(mr => mr.name === r.name);
                 if (master) r.description = master.description;
             });
-        } else {
+        } else if (characterData.steelDefender.reactions) {
             targetState.steelDefender.reactions = characterData.steelDefender.reactions;
         }
+
         ['immunities', 'senses', 'languages', 'traits', 'hitDice'].forEach(prop => {
-            if (targetState.steelDefender[prop] === undefined) {
+            if (targetState.steelDefender[prop] === undefined && characterData.steelDefender[prop] !== undefined) {
                 targetState.steelDefender[prop] = characterData.steelDefender[prop];
             }
         });
@@ -135,7 +141,9 @@ function saveState() {
     if (saveTimeout) clearTimeout(saveTimeout);
     saveTimeout = setTimeout(async () => {
         try {
-            await setDoc(doc(db, "users", currentUser.uid), state);
+            // Clean undefined values before saving to Firestore
+            const cleanState = JSON.parse(JSON.stringify(state));
+            await setDoc(doc(db, "users", currentUser.uid), cleanState);
             console.log("State saved to Firestore");
         } catch (e) {
             console.error("Error saving state: ", e);
@@ -157,7 +165,11 @@ function setupAuth() {
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-container').classList.remove('hidden');
 
-            await loadState(user.uid);
+            try {
+                await loadState(user.uid);
+            } catch (e) {
+                console.error("Failed to load state, rendering with default/local state", e);
+            }
             renderAll();
         } else {
             currentUser = null;
@@ -198,8 +210,10 @@ async function loadState(uid) {
             console.log("New user, using default characterData");
         }
         syncStateWithMasterData(state);
-        // Save initial state to Firestore
-        await setDoc(docRef, state);
+
+        // Clean undefined values before saving initial state to Firestore
+        const cleanState = JSON.parse(JSON.stringify(state));
+        await setDoc(docRef, cleanState);
     }
 }
 
