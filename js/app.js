@@ -737,7 +737,7 @@ window.toggleSavingThrow = (stat) => {
     renderAll();
 };
 
-function updateStateByPath(path, value) {
+window.updateStateByPath = function(path, value) {
     const parts = path.split('.');
     let current = state;
     for (let i = 0; i < parts.length - 1; i++) {
@@ -1262,7 +1262,7 @@ function renderCombatActions() {
     });
 }
 
-function renderInventory(filter = null) {
+window.renderInventory = function(filter = null) {
     if (filter === null) {
         const el = document.getElementById('inventory-filter');
         filter = el ? el.value : '';
@@ -1393,11 +1393,11 @@ function renderInventory(filter = null) {
                     <div class="detail-field price-editor">
                         <label>Price (ea)</label>
                         <div class="price-inputs-row">
-                            <div class="coin-input"><span>PP</span><input type="number" value="${item.price.pp}" onchange="updateStateByPath('inventory.${idx}.price.pp', parseInt(this.value) || 0); renderInventory()"></div>
-                            <div class="coin-input"><span>GP</span><input type="number" value="${item.price.gp}" onchange="updateStateByPath('inventory.${idx}.price.gp', parseInt(this.value) || 0); renderInventory()"></div>
-                            <div class="coin-input"><span>EP</span><input type="number" value="${item.price.ep}" onchange="updateStateByPath('inventory.${idx}.price.ep', parseInt(this.value) || 0); renderInventory()"></div>
-                            <div class="coin-input"><span>SP</span><input type="number" value="${item.price.sp}" onchange="updateStateByPath('inventory.${idx}.price.sp', parseInt(this.value) || 0); renderInventory()"></div>
-                            <div class="coin-input"><span>CP</span><input type="number" value="${item.price.cp}" onchange="updateStateByPath('inventory.${idx}.price.cp', parseInt(this.value) || 0); renderInventory()"></div>
+                            <div class="coin-input"><span>PP</span><input type="number" value="${item.price.pp}" onchange="updateStateByPath('inventory.${idx}.price.pp', parseInt(this.value) || 0); renderAll()"></div>
+                            <div class="coin-input"><span>GP</span><input type="number" value="${item.price.gp}" onchange="updateStateByPath('inventory.${idx}.price.gp', parseInt(this.value) || 0); renderAll()"></div>
+                            <div class="coin-input"><span>EP</span><input type="number" value="${item.price.ep}" onchange="updateStateByPath('inventory.${idx}.price.ep', parseInt(this.value) || 0); renderAll()"></div>
+                            <div class="coin-input"><span>SP</span><input type="number" value="${item.price.sp}" onchange="updateStateByPath('inventory.${idx}.price.sp', parseInt(this.value) || 0); renderAll()"></div>
+                            <div class="coin-input"><span>CP</span><input type="number" value="${item.price.cp}" onchange="updateStateByPath('inventory.${idx}.price.cp', parseInt(this.value) || 0); renderAll()"></div>
                         </div>
                     </div>
                 </div>
@@ -1457,12 +1457,8 @@ window.updateWeaponStat = (idx, stat) => {
 
 window.updateItem = (idx, field, val) => {
     state.inventory[idx][field] = val;
-    if (field === 'type' || field === 'rarity') {
-        saveState();
-        renderAll();
-    } else {
-        saveState();
-    }
+    saveState();
+    renderAll();
 };
 
 window.updateMoney = (field, val) => {
@@ -1825,6 +1821,7 @@ function renderAll() {
 
 init();
 
-// Expose for testing
+// Expose for testing and inline event handlers
+window.renderAll = renderAll;
 window.__RENDER_ALL__ = renderAll;
 window.__STATE__ = state;
