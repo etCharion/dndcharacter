@@ -144,10 +144,27 @@
                     </div>
                 </div>
                 <div class="inventory-section">
-                    <h3>Inventory & Equipment</h3>
-                    <div id="money-display"></div>
-                    <div id="inventory-list"></div>
-                    <button onclick="addInventoryItem()">+ Add Item</button>
+                    <div class="inventory-header-row">
+                        <h3>Inventory & Equipment</h3>
+                        <div class="inventory-filters">
+                            <div class="filter-row">
+                                <input type="text" id="inventory-filter" placeholder="Filter items..." onkeyup="filterInventory()">
+                                <div id="inventory-category-filters" class="category-filters"></div>
+                            </div>
+                            <div class="sort-row-inventory">
+                                <span class="sort-label">Sort by:</span>
+                                <select class="sort-select" onchange="updateSort('inventory', this.value)">
+                                    <option value="name">Name</option>
+                                    <option value="price">Price</option>
+                                    <option value="weight">Weight</option>
+                                    <option value="type">Type</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="money-display" class="inventory-totals"></div>
+                    <div id="inventory-list" class="inventory-list"></div>
+                    <button onclick="addInventoryItem()" class="add-item-btn">+ Add Item</button>
                 </div>
             </div>
         </section>

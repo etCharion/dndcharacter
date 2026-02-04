@@ -12,8 +12,10 @@ let uiState = {
     expandedSpells: new Set(),
     expandedPlans: new Set(),
     expandedTraits: new Set(),
+    expandedInventory: new Set(),
     featureFilters: new Set(),
     spellFilters: new Set(),
+    inventoryFilters: new Set(),
     collapsedCategories: new Set(['actions', 'bonus-actions', 'reactions']),
     showCommonActions: {
         actions: true,
@@ -22,6 +24,11 @@ let uiState = {
     },
     tooltips: {}
 };
+
+const ITEM_TYPES = ['Weapon', 'Armor', 'Potion', 'Scroll', 'Tool', 'Gear', 'Consumable', 'Valuable', 'Other'];
+const RARITIES = ['Common', 'Uncommon', 'Rare', 'Very Rare', 'Legendary', 'Artifact'];
+
+syncStateWithMasterData(state);
 
 const FEATURE_CATEGORIES = {
     'Race': (f) => f.source === 'Race',
@@ -131,6 +138,43 @@ function syncStateWithMasterData(targetState) {
     }
 
     if (!targetState.traits) targetState.traits = characterData.traits || [];
+    if (!targetState.settings.inventorySort) targetState.settings.inventorySort = 'name';
+
+    targetState.inventory.forEach(item => {
+        if (item.quantity === undefined) item.quantity = 1;
+        if (item.weight === undefined) item.weight = 0;
+        if (item.rarity === undefined) item.rarity = 'Common';
+        if (item.description === undefined) item.description = item.properties || '';
+        if (item.type) {
+            const normalizedType = item.type.charAt(0).toUpperCase() + item.type.slice(1).toLowerCase();
+            if (ITEM_TYPES.includes(normalizedType)) item.type = normalizedType;
+            else if (normalizedType === 'Tools') item.type = 'Tool';
+            else item.type = 'Other';
+        } else {
+            item.type = 'Other';
+        }
+
+        if (item.price === undefined) {
+            item.price = { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
+            if (item.cost && typeof item.cost === 'string') {
+                const parts = item.cost.toLowerCase().split(' ');
+                const val = parseInt(parts[0]);
+                const unit = parts[1];
+                if (!isNaN(val) && unit) {
+                    if (unit.startsWith('c')) item.price.cp = val;
+                    else if (unit.startsWith('s')) item.price.sp = val;
+                    else if (unit.startsWith('e')) item.price.ep = val;
+                    else if (unit.startsWith('g')) item.price.gp = val;
+                    else if (unit.startsWith('p')) item.price.pp = val;
+                }
+            }
+        }
+
+        // Clean up old fields
+        delete item.cost;
+        delete item.properties;
+    });
+
     if (targetState.initiative === undefined) targetState.initiative = characterData.initiative || 0;
     if (targetState.speed === undefined) targetState.speed = characterData.speed || 30;
     if (targetState.spellSaveDC === undefined) targetState.spellSaveDC = characterData.spellSaveDC || 8;
@@ -822,6 +866,7 @@ window.updateSort = (type, value) => {
     if (type === 'feature') renderFeatures();
     if (type === 'spell') renderSpells();
     if (type === 'plan') renderPlans();
+    if (type === 'inventory') renderInventory();
 };
 
 function renderLimitedUse(obj, type, index) {
@@ -1217,28 +1262,160 @@ function renderCombatActions() {
     });
 }
 
-function renderInventory() {
+function renderInventory(filter = null) {
+    if (filter === null) {
+        const el = document.getElementById('inventory-filter');
+        filter = el ? el.value : '';
+    }
+
+    const filterContainer = document.getElementById('inventory-category-filters');
+    if (filterContainer) {
+        filterContainer.innerHTML = '';
+        ITEM_TYPES.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = `filter-btn ${uiState.inventoryFilters.has(cat) ? 'active' : ''}`;
+            btn.innerText = cat;
+            btn.onclick = () => toggleInventoryFilter(cat);
+            filterContainer.appendChild(btn);
+        });
+    }
+
     const invDiv = document.getElementById('inventory-list');
     invDiv.innerHTML = '';
-    state.inventory.forEach((item, idx) => {
-        const iDiv = document.createElement('div');
-        iDiv.className = 'inv-item';
-        iDiv.innerHTML = `
-            <input type="text" value="${item.name}" onchange="updateItem(${idx}, 'name', this.value)">
-            <input type="text" value="${item.properties || ''}" onchange="updateItem(${idx}, 'properties', this.value)">
-            <label><input type="checkbox" ${item.equipped ? 'checked' : ''} onchange="toggleEquip(${idx})"> Equip</label>
-            <button onclick="removeItem(${idx})">x</button>
-        `;
-        invDiv.appendChild(iDiv);
+
+    // Calculate Totals
+    let totalWeight = 0;
+    let totalValueCP = 0;
+
+    // Item Weight/Value
+    state.inventory.forEach(item => {
+        totalWeight += (item.weight || 0) * (item.quantity || 1);
+        totalValueCP += getPriceInCP(item.price) * (item.quantity || 1);
     });
 
+    // Coin Weight
+    const coinCount = (state.money.cp || 0) + (state.money.sp || 0) + (state.money.ep || 0) + (state.money.gp || 0) + (state.money.pp || 0);
+    const coinWeight = coinCount / 50;
+    totalWeight += coinWeight;
+
     const moneyDiv = document.getElementById('money-display');
-    moneyDiv.innerHTML = `GP: <input type="number" value="${state.money.gp}" onchange="updateMoney('gp', this.value)">`;
+    if (moneyDiv) {
+        moneyDiv.innerHTML = `
+            <div class="totals-row">
+                <div class="total-item">
+                    <span class="label">Total Weight:</span>
+                    <span class="value"><strong>${totalWeight.toFixed(2)}</strong> lbs</span>
+                    <span class="sub-label">(incl. ${coinWeight.toFixed(2)} lbs coins)</span>
+                </div>
+                <div class="total-item">
+                    <span class="label">Total Value:</span>
+                    <span class="value">${formatCurrency(totalValueCP)}</span>
+                </div>
+            </div>
+            <div class="coins-editor">
+                <div class="coin-input"><span>PP</span><input type="number" value="${state.money.pp}" onchange="updateMoney('pp', this.value)"></div>
+                <div class="coin-input"><span>GP</span><input type="number" value="${state.money.gp}" onchange="updateMoney('gp', this.value)"></div>
+                <div class="coin-input"><span>EP</span><input type="number" value="${state.money.ep}" onchange="updateMoney('ep', this.value)"></div>
+                <div class="coin-input"><span>SP</span><input type="number" value="${state.money.sp}" onchange="updateMoney('sp', this.value)"></div>
+                <div class="coin-input"><span>CP</span><input type="number" value="${state.money.cp}" onchange="updateMoney('cp', this.value)"></div>
+            </div>
+        `;
+    }
+
+    // Sort and Filter Items
+    const items = state.inventory.map((item, idx) => ({ ...item, originalIndex: idx }));
+
+    const inventorySort = state.settings.inventorySort;
+    items.sort((a, b) => {
+        if (inventorySort === 'price') return getPriceInCP(b.price) - getPriceInCP(a.price);
+        if (inventorySort === 'weight') return (b.weight || 0) - (a.weight || 0);
+        if (inventorySort === 'type') return a.type.localeCompare(b.type);
+        return a.name.localeCompare(b.name);
+    });
+
+    items.forEach((item) => {
+        const idx = item.originalIndex;
+
+        // Text Filter
+        if (filter && !item.name.toLowerCase().includes(filter.toLowerCase()) && !item.description.toLowerCase().includes(filter.toLowerCase())) {
+            return;
+        }
+
+        // Category Filter
+        if (uiState.inventoryFilters.size > 0 && !uiState.inventoryFilters.has(item.type)) {
+            return;
+        }
+
+        const isExpanded = uiState.expandedInventory.has(idx);
+        const iDiv = document.createElement('div');
+        iDiv.className = `inv-item-card ${isExpanded ? 'expanded-item' : ''}`;
+
+        const priceSummary = getPriceInCP(item.price) > 0 ? formatCurrency(getPriceInCP(item.price)) : '';
+
+        iDiv.innerHTML = `
+            <div class="inv-item-header" onclick="toggleInventoryExpanded(${idx})">
+                <div class="inv-item-main-info">
+                    <span class="inv-item-qty">x<strong class="editable" data-field="inventory.${idx}.quantity" data-type="number">${item.quantity}</strong></span>
+                    <strong class="inv-item-name editable" data-field="inventory.${idx}.name">${item.name}</strong>
+                    <span class="inv-item-type">${item.type}</span>
+                </div>
+                <div class="inv-item-meta">
+                    <span class="inv-item-weight">${item.weight} lbs</span>
+                    <span class="inv-item-price">${priceSummary}</span>
+                    <label onclick="event.stopPropagation()"><input type="checkbox" ${item.equipped ? 'checked' : ''} onchange="toggleEquip(${idx})"> Equip</label>
+                    <button class="delete-btn" onclick="event.stopPropagation(); removeItem(${idx})">×</button>
+                </div>
+            </div>
+            <div class="inv-item-body ${isExpanded ? '' : 'hidden'}">
+                <div class="inv-item-details-grid">
+                    <div class="detail-field">
+                        <label>Description</label>
+                        <div class="editable" data-field="inventory.${idx}.description" data-type="textarea">${item.description || 'No description.'}</div>
+                    </div>
+                    <div class="detail-field-row">
+                        <div class="detail-field">
+                            <label>Type</label>
+                            <select onchange="updateItem(${idx}, 'type', this.value)">
+                                ${ITEM_TYPES.map(t => `<option value="${t}" ${item.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="detail-field">
+                            <label>Rarity</label>
+                            <select onchange="updateItem(${idx}, 'rarity', this.value)">
+                                ${RARITIES.map(r => `<option value="${r}" ${item.rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="detail-field">
+                            <label>Weight (ea)</label>
+                            <span class="editable" data-field="inventory.${idx}.weight" data-type="number">${item.weight}</span>
+                        </div>
+                    </div>
+                    <div class="detail-field price-editor">
+                        <label>Price (ea)</label>
+                        <div class="price-inputs-row">
+                            <div class="coin-input"><span>PP</span><input type="number" value="${item.price.pp}" onchange="updateStateByPath('inventory.${idx}.price.pp', parseInt(this.value) || 0); renderInventory()"></div>
+                            <div class="coin-input"><span>GP</span><input type="number" value="${item.price.gp}" onchange="updateStateByPath('inventory.${idx}.price.gp', parseInt(this.value) || 0); renderInventory()"></div>
+                            <div class="coin-input"><span>EP</span><input type="number" value="${item.price.ep}" onchange="updateStateByPath('inventory.${idx}.price.ep', parseInt(this.value) || 0); renderInventory()"></div>
+                            <div class="coin-input"><span>SP</span><input type="number" value="${item.price.sp}" onchange="updateStateByPath('inventory.${idx}.price.sp', parseInt(this.value) || 0); renderInventory()"></div>
+                            <div class="coin-input"><span>CP</span><input type="number" value="${item.price.cp}" onchange="updateStateByPath('inventory.${idx}.price.cp', parseInt(this.value) || 0); renderInventory()"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        iDiv.querySelectorAll('.editable').forEach(el => {
+            el.addEventListener('click', (e) => e.stopPropagation());
+            attachInlineEdit(el, el.dataset.field, el.dataset.type === 'number');
+        });
+
+        invDiv.appendChild(iDiv);
+    });
 
     const attackDiv = document.getElementById('attacks-list');
     attackDiv.innerHTML = '';
     state.inventory.forEach((w, idx) => {
-        if (w.type !== 'weapon' || !w.equipped) return;
+        if (w.type.toLowerCase() !== 'weapon' || !w.equipped) return;
 
         const aDiv = document.createElement('div');
         aDiv.className = 'attack-item';
@@ -1246,6 +1423,7 @@ function renderInventory() {
         const prefStat = w.preferredStat || 'int';
         const statMod = Math.floor((state.stats[prefStat] - 10) / 2);
         const hit = state.proficiencyBonus + statMod;
+        const damageDesc = w.description || '1d4';
 
         aDiv.innerHTML = `
             <div class="attack-header">
@@ -1262,8 +1440,8 @@ function renderInventory() {
                     <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = +${hit}</div>
                 </span>
                 <span class="attack-tooltip-trigger">
-                    Damage: ${w.properties} ${statMod >= 0 ? '+' : ''}${statMod}
-                    <div class="attack-tooltip">Damage: ${w.properties} + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod})</div>
+                    Damage: ${damageDesc} ${statMod >= 0 ? '+' : ''}${statMod}
+                    <div class="attack-tooltip">Damage: ${damageDesc} + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod})</div>
                 </span>
             </div>
         `;
@@ -1279,13 +1457,18 @@ window.updateWeaponStat = (idx, stat) => {
 
 window.updateItem = (idx, field, val) => {
     state.inventory[idx][field] = val;
-    saveState();
-    renderAll();
+    if (field === 'type' || field === 'rarity') {
+        saveState();
+        renderAll();
+    } else {
+        saveState();
+    }
 };
 
 window.updateMoney = (field, val) => {
-    state.money[field] = parseInt(val);
+    state.money[field] = parseInt(val) || 0;
     saveState();
+    renderAll();
 };
 
 window.removeItem = (idx) => {
@@ -1295,13 +1478,31 @@ window.removeItem = (idx) => {
 };
 
 window.addInventoryItem = () => {
-    state.inventory.push({ name: 'New Item', type: 'weapon', properties: '1d6', equipped: false });
+    state.inventory.push({
+        name: 'New Item',
+        type: 'Gear',
+        quantity: 1,
+        weight: 0,
+        price: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+        description: '',
+        rarity: 'Common',
+        equipped: false
+    });
     saveState();
     renderAll();
 };
 
 window.addCustomAttack = () => {
-    state.inventory.push({ name: 'New Attack', type: 'weapon', properties: '1d8', equipped: true });
+    state.inventory.push({
+        name: 'New Attack',
+        type: 'Weapon',
+        quantity: 1,
+        weight: 2,
+        price: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+        description: '1d8',
+        rarity: 'Common',
+        equipped: true
+    });
     saveState();
     renderAll();
 };
@@ -1548,6 +1749,57 @@ window.filterPlans = () => {
     const val = document.getElementById('plan-filter').value;
     renderPlans(val);
 };
+
+window.filterInventory = () => {
+    const val = document.getElementById('inventory-filter').value;
+    renderInventory(val);
+};
+
+window.toggleInventoryExpanded = (index) => {
+    if (uiState.expandedInventory.has(index)) {
+        uiState.expandedInventory.delete(index);
+    } else {
+        uiState.expandedInventory.add(index);
+    }
+    const val = document.getElementById('inventory-filter') ? document.getElementById('inventory-filter').value : '';
+    renderInventory(val);
+};
+
+window.toggleInventoryFilter = (cat) => {
+    if (uiState.inventoryFilters.has(cat)) {
+        uiState.inventoryFilters.delete(cat);
+    } else {
+        uiState.inventoryFilters.add(cat);
+    }
+    const val = document.getElementById('inventory-filter') ? document.getElementById('inventory-filter').value : '';
+    renderInventory(val);
+};
+
+function getPriceInCP(price) {
+    if (!price) return 0;
+    return (price.cp || 0) + (price.sp || 0) * 10 + (price.ep || 0) * 50 + (price.gp || 0) * 100 + (price.pp || 0) * 1000;
+}
+
+function formatCurrency(totalCP) {
+    let cp = totalCP;
+    const pp = Math.floor(cp / 1000);
+    cp %= 1000;
+    const gp = Math.floor(cp / 100);
+    cp %= 100;
+    const ep = Math.floor(cp / 50);
+    cp %= 50;
+    const sp = Math.floor(cp / 10);
+    cp %= 10;
+
+    let result = [];
+    if (pp > 0) result.push(`<strong>${pp}</strong> pp`);
+    if (gp > 0) result.push(`<strong>${gp}</strong> gp`);
+    if (ep > 0) result.push(`<strong>${ep}</strong> ep`);
+    if (sp > 0) result.push(`<strong>${sp}</strong> sp`);
+    if (cp > 0) result.push(`<strong>${cp}</strong> cp`);
+
+    return result.length > 0 ? result.join(', ') : '0 gp';
+}
 
 window.preparePlan = (idx) => {
     state.plans.prepared.push({ ...state.plans.all[idx] });
