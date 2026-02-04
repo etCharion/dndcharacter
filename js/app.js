@@ -11,7 +11,7 @@ let uiState = {
     spellFilters: new Set(),
     collapsedCategories: new Set(['actions', 'bonus-actions', 'reactions']),
     showCommonActions: {
-        actions: false,
+        actions: true,
         'bonus-actions': false,
         reactions: false
     }
@@ -1066,6 +1066,12 @@ window.removeItem = (idx) => {
 
 window.addInventoryItem = () => {
     state.inventory.push({ name: 'New Item', type: 'weapon', properties: '1d6', equipped: false });
+    saveState();
+    renderAll();
+};
+
+window.addCustomAttack = () => {
+    state.inventory.push({ name: 'New Attack', type: 'weapon', properties: '1d8', equipped: true });
     saveState();
     renderAll();
 };
