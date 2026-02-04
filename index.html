@@ -79,30 +79,59 @@
         <!-- Combat & Inventory Tab -->
         <section id="combat" class="tab-content">
             <div class="combat-grid">
-                <div class="attacks-section">
-                    <h3>Attacks</h3>
-                    <div id="attacks-list"></div>
-                    <button onclick="addCustomAttack()">+ Add Attack</button>
+                <div class="left-combat-column">
+                    <div class="attacks-section">
+                        <h3>Attacks</h3>
+                        <div id="attacks-list"></div>
+                        <button onclick="addCustomAttack()">+ Add Attack</button>
+                    </div>
+                    <div id="combat-actions" class="combat-actions-vertical">
+                        <div class="action-category" id="category-actions">
+                            <div class="category-header" onclick="toggleCategory('actions')">
+                                <h3>Actions</h3>
+                                <div class="category-controls">
+                                    <label class="toggle-control" onclick="event.stopPropagation()">
+                                        <input type="checkbox" id="toggle-common-actions" onchange="toggleCommonActions('actions')">
+                                        <span>Show Common</span>
+                                    </label>
+                                    <span class="collapse-icon">▶</span>
+                                </div>
+                            </div>
+                            <div id="actions-list" class="actions-container hidden"></div>
+                        </div>
+                        <div class="action-category" id="category-bonus-actions">
+                            <div class="category-header" onclick="toggleCategory('bonus-actions')">
+                                <h3>Bonus Actions</h3>
+                                <div class="category-controls">
+                                    <label class="toggle-control" onclick="event.stopPropagation()">
+                                        <input type="checkbox" id="toggle-common-bonus-actions" onchange="toggleCommonActions('bonus-actions')">
+                                        <span>Show Common</span>
+                                    </label>
+                                    <span class="collapse-icon">▶</span>
+                                </div>
+                            </div>
+                            <div id="bonus-actions-list" class="actions-container hidden"></div>
+                        </div>
+                        <div class="action-category" id="category-reactions">
+                            <div class="category-header" onclick="toggleCategory('reactions')">
+                                <h3>Reactions</h3>
+                                <div class="category-controls">
+                                    <label class="toggle-control" onclick="event.stopPropagation()">
+                                        <input type="checkbox" id="toggle-common-reactions" onchange="toggleCommonActions('reactions')">
+                                        <span>Show Common</span>
+                                    </label>
+                                    <span class="collapse-icon">▶</span>
+                                </div>
+                            </div>
+                            <div id="reactions-list" class="actions-container hidden"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="inventory-section">
                     <h3>Inventory & Equipment</h3>
                     <div id="money-display"></div>
                     <div id="inventory-list"></div>
                     <button onclick="addInventoryItem()">+ Add Item</button>
-                </div>
-            </div>
-            <div id="combat-actions" class="combat-actions-grid">
-                <div class="action-column">
-                    <h3>Actions</h3>
-                    <div id="actions-list" class="actions-container"></div>
-                </div>
-                <div class="action-column">
-                    <h3>Bonus Actions</h3>
-                    <div id="bonus-actions-list" class="actions-container"></div>
-                </div>
-                <div class="action-column">
-                    <h3>Reactions</h3>
-                    <div id="reactions-list" class="actions-container"></div>
                 </div>
             </div>
         </section>

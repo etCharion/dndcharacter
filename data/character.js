@@ -77,7 +77,10 @@ export const characterData = {
             limitedUse: {
                 max: 3,
                 reset: "longRest"
-            }
+            },
+            actions: [
+                { name: "Tremor Sense", type: "Bonus Action", description: "Gain Tremorsense with a range of 60 feet for 10 minutes while touching a stone surface." }
+            ]
         },
         {
             name: "Lucky",
@@ -93,7 +96,10 @@ export const characterData = {
             name: "War Caster",
             description: "You gain the following benefits:<br>• <strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 20 (already included).<br>• <strong>Concentration.</strong> You have Advantage on Constitution saving throws that you make to maintain Concentration.<br>• <strong>Reactive Spell.</strong> When a creature provokes an Opportunity Attack from you by leaving your reach, you can take a Reaction to cast a spell at the creature rather than making an Opportunity Attack. The spell must have a casting time of one action and must target only that creature.<br>• <strong>Somatic Components.</strong> You can perform the Somatic components of spells even when you have weapons or a Shield in one or both hands.",
             source: "Feat",
-            level: 4
+            level: 4,
+            actions: [
+                { name: "Reactive Spell", type: "Reaction", description: "Cast a spell as a Reaction instead of an Opportunity Attack when a creature leaves your reach." }
+            ]
         },
         {
             name: "Tinker's Magic",
@@ -141,7 +147,12 @@ export const characterData = {
             limitedUse: {
                 max: 1,
                 reset: "longRest"
-            }
+            },
+            actions: [
+                { name: "Charge Magick", type: "Bonus Action", description: "Expend a spell slot to recharge a magic item created with Replicate Magic Item." },
+                { name: "Drain Magic", type: "Bonus Action", description: "Vanish a magic item created with Replicate Magic Item to regain a spell slot." },
+                { name: "Transmute Magic", type: "Magic Action", description: "Transform a magic item created with Replicate Magic Item into a different one." }
+            ]
         },
         {
             name: "Spellcasting",
@@ -153,7 +164,11 @@ export const characterData = {
             name: "Steel Defender",
             description: "Your tinkering has borne you a companion, a Steel Defender. It is Friendly to you and your allies and obeys you. It vanishes if you die.<br><br>• <strong>In Combat.</strong> In combat, the defender acts during your turn. It can move and take its Reaction on its own, but the only action it takes is the Dodge action unless you take a Bonus Action to command it to take an action. If you have the Incapacitated condition, the defender acts on its own.<br>• <strong>Restoring or Replacing.</strong> If the defender has died within the last hour, you can take a Magic action to touch it and expend a spell slot. The defender returns to life after 1 minute with all its Hit Points restored. Whenever you finish a Long Rest, you can create a new defender if you have Smith’s Tools in hand.",
             source: "Battle Smith 3",
-            level: 3
+            level: 3,
+            actions: [
+                { name: "Command Steel Defender", type: "Bonus Action", description: "Command the defender to take an action other than Dodge." },
+                { name: "Repair Steel Defender", type: "Magic Action", description: "Expend a spell slot to restore your Steel Defender to life with all HP (if it died within the last hour)." }
+            ]
         }
     ],
     spells: {

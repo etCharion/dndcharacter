@@ -8,7 +8,13 @@ let uiState = {
     expandedPlans: new Set(),
     expandedTraits: new Set(),
     featureFilters: new Set(),
-    spellFilters: new Set()
+    spellFilters: new Set(),
+    collapsedCategories: new Set(['actions', 'bonus-actions', 'reactions']),
+    showCommonActions: {
+        actions: false,
+        'bonus-actions': false,
+        reactions: false
+    }
 };
 
 const FEATURE_CATEGORIES = {
@@ -67,6 +73,7 @@ state.features.forEach(f => {
         f.name = master.name; // Sync name in case of renames
         f.description = master.description;
         f.level = master.level;
+        f.actions = master.actions; // Sync actions
         if (master.limitedUse) {
             if (!f.limitedUse) {
                 f.limitedUse = { ...master.limitedUse, used: 0 };
@@ -900,6 +907,24 @@ const COMMON_ACTIONS = [
     { name: "Influence", description: "Make a Charisma check (Deception, Intimidation, Performance, Persuasion) to influence a creature." }
 ];
 
+const COMMON_REACTIONS = [
+    { name: "Opportunity Attack", description: "Make one melee attack against a creature that leaves your reach without Disengaging." }
+];
+
+window.toggleCategory = (cat) => {
+    if (uiState.collapsedCategories.has(cat)) {
+        uiState.collapsedCategories.delete(cat);
+    } else {
+        uiState.collapsedCategories.add(cat);
+    }
+    renderCombatActions();
+};
+
+window.toggleCommonActions = (cat) => {
+    uiState.showCommonActions[cat] = !uiState.showCommonActions[cat];
+    renderCombatActions();
+};
+
 function renderCombatActions() {
     const actionsList = document.getElementById('actions-list');
     const bonusActionsList = document.getElementById('bonus-actions-list');
@@ -907,59 +932,85 @@ function renderCombatActions() {
 
     if (!actionsList || !bonusActionsList || !reactionsList) return;
 
+    // Handle collapsed states and UI icons
+    const categories = ['actions', 'bonus-actions', 'reactions'];
+    categories.forEach(cat => {
+        const container = document.getElementById(`${cat}-list`);
+        const wrapper = document.getElementById(`category-${cat}`);
+        const checkbox = document.getElementById(`toggle-common-${cat === 'actions' ? 'actions' : cat}`);
+        const isCollapsed = uiState.collapsedCategories.has(cat);
+
+        if (isCollapsed) {
+            container.classList.add('hidden');
+            wrapper.classList.add('collapsed');
+        } else {
+            container.classList.remove('hidden');
+            wrapper.classList.remove('collapsed');
+        }
+
+        if (checkbox) {
+            checkbox.checked = uiState.showCommonActions[cat];
+        }
+    });
+
     actionsList.innerHTML = '';
     bonusActionsList.innerHTML = '';
     reactionsList.innerHTML = '';
 
-    // Render Common Actions
-    COMMON_ACTIONS.forEach(action => {
+    // Helper to render action items
+    const createActionItem = (name, description, isCommon = false, featIndex = null) => {
         const item = document.createElement('div');
-        item.className = 'combat-action-item common';
-        item.innerHTML = `<strong>${action.name}:</strong> <span>${action.description}</span>`;
-        actionsList.appendChild(item);
-    });
+        item.className = `combat-action-item ${isCommon ? 'common' : 'specific'}`;
+
+        let header = '';
+        let usesHtml = '';
+        if (featIndex !== null) {
+            const feat = state.features[featIndex];
+            header = `<strong class="feat-name" onclick="jumpToFeature(${featIndex})">${name}</strong>`;
+            if (feat.limitedUse) {
+                usesHtml = `<div class="action-uses">${renderLimitedUse(feat, 'feature', featIndex)}</div>`;
+            }
+        } else {
+            header = `<strong>${name}</strong>`;
+        }
+
+        item.innerHTML = `
+            <div class="action-main">
+                ${header}
+                <div class="action-preview">${description}</div>
+            </div>
+            ${usesHtml}
+        `;
+        return item;
+    };
+
+    // Render Common Actions
+    if (uiState.showCommonActions.actions) {
+        COMMON_ACTIONS.forEach(action => {
+            actionsList.appendChild(createActionItem(action.name, action.description, true));
+        });
+    }
+
+    if (uiState.showCommonActions.reactions) {
+        COMMON_REACTIONS.forEach(reaction => {
+            reactionsList.appendChild(createActionItem(reaction.name, reaction.description, true));
+        });
+    }
 
     // Extract Specific Actions from Features
     state.features.forEach((feat, index) => {
-        const desc = feat.description.toLowerCase();
-        let targetList = null;
-        let typeLabel = '';
+        if (feat.actions) {
+            feat.actions.forEach(action => {
+                let targetList = null;
+                const type = action.type.toLowerCase();
+                if (type.includes('bonus')) targetList = bonusActionsList;
+                else if (type.includes('reaction')) targetList = reactionsList;
+                else targetList = actionsList; // Default to Action (handles "Magic Action", "Action", etc.)
 
-        if (desc.includes('bonus action')) {
-            targetList = bonusActionsList;
-            typeLabel = 'Bonus Action';
-        } else if (desc.includes('reaction')) {
-            targetList = reactionsList;
-            typeLabel = 'Reaction';
-        } else if (desc.includes('magic action') || desc.includes('as an action')) {
-            targetList = actionsList;
-            typeLabel = 'Action';
-        }
-
-        if (targetList) {
-            const item = document.createElement('div');
-            item.className = 'combat-action-item specific';
-            item.innerHTML = `
-                <div class="action-main">
-                    <strong class="feat-name" onclick="jumpToFeature(${index})">${feat.name}</strong>
-                    <div class="action-preview">${feat.description.split('<br>')[0].split('.')[0]}.</div>
-                </div>
-                ${feat.limitedUse ? `<div class="action-uses">${renderLimitedUse(feat, 'feature', index)}</div>` : ''}
-            `;
-            targetList.appendChild(item);
+                targetList.appendChild(createActionItem(action.name, action.description, false, index));
+            });
         }
     });
-
-    // Special case: Steel Defender Command
-    const sdItem = document.createElement('div');
-    sdItem.className = 'combat-action-item specific';
-    sdItem.innerHTML = `
-        <div class="action-main">
-            <strong class="feat-name" onclick="document.querySelector('[data-tab=\'steel-defender\']').click()">Command Steel Defender</strong>
-            <div class="action-preview">Command the defender to take an action other than Dodge.</div>
-        </div>
-    `;
-    bonusActionsList.appendChild(sdItem);
 }
 
 function renderInventory() {
