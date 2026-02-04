@@ -705,4 +705,64 @@ hr {
     border-top: 1px solid var(--border-color);
 }
 
+.login-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.login-card {
+    background: var(--panel-bg);
+    padding: 40px;
+    border: 2px solid var(--accent-color);
+    box-shadow: 0 0 20px var(--accent-glow);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+.login-card h1 {
+    margin-bottom: 20px;
+    color: var(--accent-color);
+}
+
+.login-card p {
+    margin-bottom: 30px;
+    color: var(--muted-text);
+}
+
+.large-btn {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.header-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.8rem;
+    color: var(--muted-text);
+}
+
+.small-btn {
+    padding: 3px 8px;
+    font-size: 0.7rem;
+}
+
 .hidden { display: none !important; }
