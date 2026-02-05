@@ -306,6 +306,10 @@ button:hover { background: var(--accent-color); color: #000; }
     flex-wrap: wrap;
 }
 
+.attack-item .attack-header[onclick] {
+    cursor: pointer;
+}
+
 .attack-controls {
     display: flex;
     align-items: center;
