@@ -13,6 +13,7 @@ let uiState = {
     expandedPlans: new Set(),
     expandedTraits: new Set(),
     expandedInventory: new Set(),
+    expandedCustomAttacks: new Set(),
     featureFilters: new Set(),
     spellFilters: new Set(),
     inventoryFilters: new Set(),
@@ -218,6 +219,13 @@ function syncStateWithMasterData(targetState) {
                 return targetState.inventory.some(item => item.id === at.itemId);
             }
             return true;
+        });
+
+        // Ensure custom attacks have IDs
+        targetState.attacks.forEach(at => {
+            if (at.type !== 'weapon' && !at.id) {
+                at.id = 'atk_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            }
         });
     }
 }
@@ -637,6 +645,15 @@ window.toggleTrait = (index) => {
         uiState.expandedTraits.delete(index);
     } else {
         uiState.expandedTraits.add(index);
+    }
+    renderAll();
+};
+
+window.toggleCustomAttackExpanded = (id) => {
+    if (uiState.expandedCustomAttacks.has(id)) {
+        uiState.expandedCustomAttacks.delete(id);
+    } else {
+        uiState.expandedCustomAttacks.add(id);
     }
     renderAll();
 };
@@ -1492,17 +1509,19 @@ window.renderInventory = function(filter = null) {
             const statMod = Math.floor((state.stats[a.stat] - 10) / 2);
             const hit = state.proficiencyBonus + statMod;
             const dc = 8 + state.proficiencyBonus + statMod;
+            const isExpanded = uiState.expandedCustomAttacks.has(a.id);
 
             aDiv.innerHTML = `
-                <div class="attack-header">
+                <div class="attack-header" onclick="toggleCustomAttackExpanded('${a.id}')">
                     <strong class="editable" data-field="attacks.${idx}.name">${a.name}</strong>
                     <div class="attack-controls">
-                        <button class="small-btn" onclick="moveAttack(${idx}, -1)">↑</button>
-                        <button class="small-btn" onclick="moveAttack(${idx}, 1)">↓</button>
-                        <button class="delete-btn" onclick="removeAttackFromList(${idx})">×</button>
+                        ${(a.spellLevel > 0) ? `<button class="small-btn" onclick="event.stopPropagation(); castAttackSpell(${idx})">Cast</button>` : ''}
+                        <button class="small-btn" onclick="event.stopPropagation(); moveAttack(${idx}, -1)">↑</button>
+                        <button class="small-btn" onclick="event.stopPropagation(); moveAttack(${idx}, 1)">↓</button>
+                        <button class="delete-btn" onclick="event.stopPropagation(); removeAttackFromList(${idx})">×</button>
                     </div>
                 </div>
-                <div class="custom-attack-configs">
+                <div class="custom-attack-configs ${isExpanded ? '' : 'hidden'}">
                     <div class="config-row">
                         <select onchange="updateAttackProperty(${idx}, 'attackType', this.value)">
                             <option value="attack" ${a.attackType === 'attack' ? 'selected' : ''}>Attack</option>
@@ -1534,7 +1553,6 @@ window.renderInventory = function(filter = null) {
                             <option value="0" ${a.spellLevel === 0 ? 'selected' : ''}>Cantrip</option>
                             ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(l => `<option value="${l}" ${a.spellLevel === l ? 'selected' : ''}>Lvl ${l}</option>`).join('')}
                         </select>
-                        ${(a.spellLevel > 0) ? `<button class="small-btn" onclick="castAttackSpell(${idx})">Cast</button>` : ''}
                     </div>
                 </div>
                 <div class="attack-details">
@@ -1605,6 +1623,7 @@ window.addInventoryItem = () => {
 
 window.addCustomAttack = () => {
     state.attacks.push({
+        id: 'atk_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(),
         type: 'custom',
         name: 'New Attack',
         attackType: 'attack',
