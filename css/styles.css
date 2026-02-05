@@ -302,6 +302,50 @@ button:hover { background: var(--accent-color); color: #000; }
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.attack-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.custom-attack-configs {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #222;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.config-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.config-row select {
+    background: #000;
+    color: var(--neon-cyan);
+    border: 1px solid #444;
+    padding: 2px 5px;
+    font-family: inherit;
+    font-size: 0.8rem;
+}
+
+.attack-description {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--muted-text);
+    border-top: 1px solid #222;
+    padding-top: 5px;
+    font-style: italic;
 }
 
 .attack-details {
