@@ -29,6 +29,23 @@ let uiState = {
 const ITEM_TYPES = ['Weapon', 'Armor', 'Potion', 'Scroll', 'Tool', 'Gear', 'Consumable', 'Valuable', 'Other'];
 const RARITIES = ['Common', 'Uncommon', 'Rare', 'Very Rare', 'Legendary', 'Artifact'];
 
+const CONDITIONS_DATA = {
+    'Blinded': 'Attacks against you have Advantage. Your attack rolls have Disadvantage. You fail any ability check that requires sight.',
+    'Charmed': 'You can\'t attack the charmer or target them with harmful abilities. The charmer has Advantage on ability checks to interact socially with you.',
+    'Deafened': 'You fail any ability check that requires hearing.',
+    'Frightened': 'You have Disadvantage on ability checks and attack rolls while the source of fear is within line of sight. You can\'t willingly move closer to the source.',
+    'Grappled': 'Your speed is 0. You have Disadvantage on attack rolls against anyone except the grappler. The grappler can move you.',
+    'Incapacitated': 'You can\'t take actions, bonus actions, or reactions. Your concentration is broken. You can\'t speak.',
+    'Invisible': 'You have Advantage on attack rolls. Attack rolls against you have Disadvantage. You aren\'t affected by features that require sight. You are heavily obscured.',
+    'Paralyzed': 'You have the Incapacitated and Restrained conditions. You fail Str and Dex saves. Attack rolls against you have Advantage. Any attack that hits you is a critical hit if the attacker is within 5 feet.',
+    'Petrified': 'You are transformed into inanimate material. You have the Incapacitated and Restrained conditions. Attack rolls against you have Advantage. You fail Str and Dex saves. You have Resistance to all damage and are immune to Poison.',
+    'Poisoned': 'You have Disadvantage on attack rolls and ability checks.',
+    'Prone': 'Your only movement option is to crawl. You have Disadvantage on attack rolls. An attack roll against you has Advantage if the attacker is within 5 feet. Otherwise, the attack roll has Disadvantage.',
+    'Restrained': 'Your speed is 0. Attack rolls against you have Advantage. Your attack rolls have Disadvantage. You have Disadvantage on Dex saves.',
+    'Stunned': 'You have the Incapacitated and Restrained conditions. You fail Str and Dex saves. Attack rolls against you have Advantage.',
+    'Unconscious': 'You have the Incapacitated and Restrained conditions. You are Prone. You fail Str and Dex saves. Attack rolls against you have Advantage. Any attack that hits you is a critical hit if the attacker is within 5 feet.'
+};
+
 syncStateWithMasterData(state);
 
 const FEATURE_CATEGORIES = {
@@ -180,6 +197,13 @@ function syncStateWithMasterData(targetState) {
     if (targetState.speed === undefined) targetState.speed = characterData.speed || 30;
     if (targetState.spellSaveDC === undefined) targetState.spellSaveDC = characterData.spellSaveDC || 8;
     if (targetState.spellAttackBonus === undefined) targetState.spellAttackBonus = characterData.spellAttackBonus || 0;
+
+    if (targetState.heroicInspiration === undefined) targetState.heroicInspiration = characterData.heroicInspiration || false;
+    if (targetState.hitDice === undefined) targetState.hitDice = { ...characterData.hitDice };
+    if (targetState.conditions === undefined) targetState.conditions = [...(characterData.conditions || [])];
+    if (targetState.exhaustion === undefined) targetState.exhaustion = characterData.exhaustion || 0;
+    if (!targetState.proficiencies) targetState.proficiencies = JSON.parse(JSON.stringify(characterData.proficiencies));
+    if (!targetState.senses) targetState.senses = JSON.parse(JSON.stringify(characterData.senses || []));
 
     for (let skill in characterData.skills) {
         if (!targetState.skills[skill]) {
@@ -335,19 +359,40 @@ function handleShortRest() {
 }
 
 function handleLongRest() {
+    // Reset Spell Slots
     for (let lvl in state.spells.slots) {
         state.spells.slots[lvl].used = 0;
     }
+
+    // Reset Feature Uses
     state.features.forEach(f => {
         if (f.limitedUse) {
             f.limitedUse.used = 0;
         }
     });
-    if (state.steelDefender && state.steelDefender.actions) {
-        state.steelDefender.actions.forEach(a => {
-            if (a.limitedUse) a.limitedUse.used = 0;
-        });
+
+    // Reset Steel Defender
+    if (state.steelDefender) {
+        if (state.steelDefender.actions) {
+            state.steelDefender.actions.forEach(a => {
+                if (a.limitedUse) a.limitedUse.used = 0;
+            });
+        }
+        if (state.steelDefender.hp) state.steelDefender.hp.current = state.steelDefender.hp.max;
+        if (state.steelDefender.hitDice) state.steelDefender.hitDice.current = state.steelDefender.hitDice.max;
     }
+
+    // Recover Hit Dice (half of max, min 1)
+    if (state.hitDice) {
+        const recovery = Math.max(1, Math.floor(state.hitDice.max / 2));
+        state.hitDice.current = Math.min(state.hitDice.max, state.hitDice.current + recovery);
+    }
+
+    // Reduce Exhaustion
+    if (state.exhaustion > 0) {
+        state.exhaustion -= 1;
+    }
+
     state.hp.current = state.hp.max;
     saveState();
 }
@@ -364,7 +409,96 @@ function renderTabs() {
     });
 }
 
+function renderStatusBar() {
+    const statusBar = document.getElementById('status-bar');
+    if (!statusBar) return;
+
+    statusBar.innerHTML = `
+        <div class="status-item inspiration-toggle ${state.heroicInspiration ? 'active' : ''}" onclick="toggleHeroicInspiration()">
+            <span class="status-icon">★</span>
+            <span class="label">Heroic Inspiration</span>
+        </div>
+        <div class="status-item">
+            <span class="label">Hit Dice (${state.hitDice.die})</span>
+            <span class="value">
+                <span class="editable" data-field="hitDice.current" data-type="number">${state.hitDice.current}</span> / <span class="editable" data-field="hitDice.max" data-type="number">${state.hitDice.max}</span>
+            </span>
+        </div>
+        <div class="status-item exhaustion-tracker">
+            <span class="label">Exhaustion</span>
+            <div class="exhaustion-pips">
+                ${[1, 2, 3, 4, 5, 6].map(lvl => `
+                    <div class="exhaust-pip ${state.exhaustion >= lvl ? 'active' : ''}" onclick="updateExhaustion(${lvl})"></div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="status-item conditions-status">
+            <span class="label">Conditions</span>
+            <div id="active-conditions" class="active-conditions-list">
+                ${state.conditions.length > 0 ? state.conditions.map(c => `
+                    <span class="condition-tag tooltip-trigger">
+                        ${c}
+                        <div class="tooltip">${CONDITIONS_DATA[c] || ''}</div>
+                    </span>
+                `).join('') : '<span class="no-conditions">None</span>'}
+                <button class="add-condition-btn" onclick="toggleConditionsMenu(event)">+</button>
+            </div>
+            <div id="conditions-menu" class="conditions-menu hidden" onclick="event.stopPropagation()">
+                <div class="conditions-menu-header">
+                    <span>Manage Conditions</span>
+                    <button onclick="toggleConditionsMenu(event)">×</button>
+                </div>
+                <div class="conditions-grid">
+                    ${Object.keys(CONDITIONS_DATA).sort().map(c => `
+                        <label class="condition-option">
+                            <input type="checkbox" ${state.conditions.includes(c) ? 'checked' : ''} onchange="toggleCondition('${c}')">
+                            ${c}
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+    statusBar.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field, true));
+}
+
+window.toggleHeroicInspiration = () => {
+    state.heroicInspiration = !state.heroicInspiration;
+    saveState();
+    renderAll();
+};
+
+window.updateExhaustion = (lvl) => {
+    if (state.exhaustion === lvl) state.exhaustion = lvl - 1;
+    else state.exhaustion = lvl;
+    saveState();
+    renderAll();
+};
+
+window.toggleCondition = (c) => {
+    const idx = state.conditions.indexOf(c);
+    if (idx > -1) state.conditions.splice(idx, 1);
+    else state.conditions.push(c);
+    saveState();
+    renderAll();
+};
+
+window.toggleConditionsMenu = (e) => {
+    e.stopPropagation();
+    const menu = document.getElementById('conditions-menu');
+    menu.classList.toggle('hidden');
+};
+
+// Close menu when clicking outside
+document.addEventListener('click', () => {
+    const menu = document.getElementById('conditions-menu');
+    if (menu && !menu.classList.contains('hidden')) {
+        menu.classList.add('hidden');
+    }
+});
+
 function renderStats() {
+    renderStatusBar();
     // Character Name
     const nameEl = document.getElementById('char-name');
     nameEl.innerText = state.name;
@@ -485,7 +619,92 @@ function renderStatsExtras() {
     renderLimitedUseOverview(container);
     renderSteelDefenderOverview(container);
     renderTraitsOverview(container);
+    renderProficienciesOverview(container);
+    renderSensesOverview(container);
 }
+
+function renderProficienciesOverview(parent) {
+    const section = document.createElement('div');
+    section.className = 'extra-section';
+    section.innerHTML = '<h3>Proficiencies</h3>';
+
+    const categories = [
+        { key: 'weapons', label: 'Weapons' },
+        { key: 'armor', label: 'Armor' },
+        { key: 'tools', label: 'Tools' },
+        { key: 'languages', label: 'Languages' }
+    ];
+
+    categories.forEach(cat => {
+        const catDiv = document.createElement('div');
+        catDiv.className = 'proficiency-category';
+        catDiv.innerHTML = `
+            <div class="category-header-small">
+                <strong>${cat.label}</strong>
+                <button class="small-btn" onclick="addProficiency('${cat.key}')">+</button>
+            </div>
+            <div class="proficiency-list">
+                ${state.proficiencies[cat.key].map((p, i) => `
+                    <div class="proficiency-item">
+                        <span class="editable" data-field="proficiencies.${cat.key}.${i}">${p}</span>
+                        <span class="delete-btn" onclick="deleteProficiency('${cat.key}', ${i})">×</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        section.appendChild(catDiv);
+    });
+
+    section.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field));
+    parent.appendChild(section);
+}
+
+window.addProficiency = (key) => {
+    state.proficiencies[key].push("New proficiency");
+    saveState();
+    renderAll();
+};
+
+window.deleteProficiency = (key, index) => {
+    state.proficiencies[key].splice(index, 1);
+    saveState();
+    renderAll();
+};
+
+function renderSensesOverview(parent) {
+    const section = document.createElement('div');
+    section.className = 'extra-section';
+    section.innerHTML = '<h3>Senses <button onclick="addSense()">+ Add</button></h3>';
+
+    const list = document.createElement('div');
+    list.className = 'senses-list';
+    state.senses.forEach((s, i) => {
+        const item = document.createElement('div');
+        item.className = 'sense-item';
+        item.innerHTML = `
+            <strong class="editable" data-field="senses.${i}.name">${s.name}</strong>:
+            <span class="editable" data-field="senses.${i}.value">${s.value}</span>
+            <span class="delete-btn" onclick="deleteSense(${i})">×</span>
+        `;
+        list.appendChild(item);
+    });
+    section.appendChild(list);
+
+    section.querySelectorAll('.editable').forEach(el => attachInlineEdit(el, el.dataset.field));
+    parent.appendChild(section);
+}
+
+window.addSense = () => {
+    state.senses.push({ name: "New Sense", value: "Value" });
+    saveState();
+    renderAll();
+};
+
+window.deleteSense = (i) => {
+    state.senses.splice(i, 1);
+    saveState();
+    renderAll();
+};
 
 function renderLimitedUseOverview(parent) {
     const section = document.createElement('div');
