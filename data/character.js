@@ -8,6 +8,14 @@ export const characterData = {
     race: "Dwarf (Mountain Dwarf)",
     background: "Merchant",
     alignment: "Neutral",
+    heroicInspiration: false,
+    hitDice: {
+        current: 6,
+        max: 6,
+        die: "d8"
+    },
+    conditions: [],
+    exhaustion: 0,
     stats: {
         str: 11,
         dex: 16,
@@ -195,6 +203,16 @@ export const characterData = {
     money: {
         cp: 0, sp: 0, gp: 22, ep: 0, pp: 0
     },
+    proficiencies: {
+        weapons: ["Simple weapons", "Martial weapons", "Firearms"],
+        armor: ["Light armor", "Medium armor", "Shields"],
+        tools: ["Thieves' Tools", "Tinker's Tools", "Smith's Tools"],
+        languages: ["Common", "Dwarvish"]
+    },
+    senses: [
+        { name: "Darkvision", value: "120 ft" },
+        { name: "Passive Perception", value: "15" }
+    ],
     settings: {
         featureSort: 'name',
         spellSort: 'level',
