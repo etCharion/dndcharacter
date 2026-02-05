@@ -187,10 +187,39 @@ function syncStateWithMasterData(targetState) {
     }
 
     targetState.inventory.forEach(item => {
-        if (item.type === 'weapon' && !item.preferredStat) {
+        if (item.type && item.type.toLowerCase() === 'weapon' && !item.preferredStat) {
             item.preferredStat = 'int'; // Default for Battle Smith
         }
     });
+
+    // Ensure all inventory items have a unique ID
+    targetState.inventory.forEach(item => {
+        if (!item.id) {
+            item.id = 'item_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+        }
+    });
+
+    // Initialize attacks list if missing
+    if (!targetState.attacks) {
+        targetState.attacks = [];
+        // Migration: Add equipped weapons to the attacks list
+        targetState.inventory.forEach(item => {
+            if (item.type && item.type.toLowerCase() === 'weapon' && item.equipped) {
+                targetState.attacks.push({
+                    type: 'weapon',
+                    itemId: item.id
+                });
+            }
+        });
+    } else {
+        // Cleanup: remove weapon attacks if the item no longer exists in inventory
+        targetState.attacks = targetState.attacks.filter(at => {
+            if (at.type === 'weapon') {
+                return targetState.inventory.some(item => item.id === at.itemId);
+            }
+            return true;
+        });
+    }
 }
 
 function saveState() {
@@ -551,6 +580,13 @@ window.toggleSDHitDice = (useIndex) => {
         sd.hitDice.current = sd.hitDice.max - (useIndex + 1);
     }
 
+    saveState();
+    renderAll();
+};
+
+window.updateWeaponStatById = (id, stat) => {
+    const item = state.inventory.find(i => i.id === id);
+    if (item) item.preferredStat = stat;
     saveState();
     renderAll();
 };
@@ -1414,46 +1450,121 @@ window.renderInventory = function(filter = null) {
 
     const attackDiv = document.getElementById('attacks-list');
     attackDiv.innerHTML = '';
-    state.inventory.forEach((w, idx) => {
-        if (w.type.toLowerCase() !== 'weapon' || !w.equipped) return;
-
+    state.attacks.forEach((a, idx) => {
         const aDiv = document.createElement('div');
         aDiv.className = 'attack-item';
 
-        const prefStat = w.preferredStat || 'int';
-        const statMod = Math.floor((state.stats[prefStat] - 10) / 2);
-        const hit = state.proficiencyBonus + statMod;
-        const damageDesc = w.description || '1d4';
+        if (a.type === 'weapon') {
+            const item = state.inventory.find(i => i.id === a.itemId);
+            if (!item) return;
 
-        aDiv.innerHTML = `
-            <div class="attack-header">
-                <strong>${w.name}</strong>
-                <div class="stat-toggles">
-                    <button class="stat-toggle ${prefStat === 'str' ? 'active' : ''}" onclick="updateWeaponStat(${idx}, 'str')">STR</button>
-                    <button class="stat-toggle ${prefStat === 'dex' ? 'active' : ''}" onclick="updateWeaponStat(${idx}, 'dex')">DEX</button>
-                    <button class="stat-toggle ${prefStat === 'int' ? 'active' : ''}" onclick="updateWeaponStat(${idx}, 'int')">INT</button>
+            const prefStat = item.preferredStat || 'int';
+            const statMod = Math.floor((state.stats[prefStat] - 10) / 2);
+            const hit = state.proficiencyBonus + statMod;
+            const damageDesc = item.description || '1d4';
+
+            aDiv.innerHTML = `
+                <div class="attack-header">
+                    <strong>${item.name}</strong>
+                    <div class="attack-controls">
+                        <div class="stat-toggles">
+                            <button class="stat-toggle ${prefStat === 'str' ? 'active' : ''}" onclick="updateWeaponStatById('${item.id}', 'str')">STR</button>
+                            <button class="stat-toggle ${prefStat === 'dex' ? 'active' : ''}" onclick="updateWeaponStatById('${item.id}', 'dex')">DEX</button>
+                            <button class="stat-toggle ${prefStat === 'int' ? 'active' : ''}" onclick="updateWeaponStatById('${item.id}', 'int')">INT</button>
+                        </div>
+                        <button class="small-btn" onclick="moveAttack(${idx}, -1)">↑</button>
+                        <button class="small-btn" onclick="moveAttack(${idx}, 1)">↓</button>
+                        <button class="delete-btn" onclick="removeAttackFromList(${idx})">×</button>
+                    </div>
                 </div>
-            </div>
-            <div class="attack-details">
-                <span class="attack-tooltip-trigger">
-                    Hit: +${hit}
-                    <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = +${hit}</div>
-                </span>
-                <span class="attack-tooltip-trigger">
-                    Damage: ${damageDesc} ${statMod >= 0 ? '+' : ''}${statMod}
-                    <div class="attack-tooltip">Damage: ${damageDesc} + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod})</div>
-                </span>
-            </div>
-        `;
+                <div class="attack-details">
+                    <span class="attack-tooltip-trigger">
+                        Hit: +${hit}
+                        <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = +${hit}</div>
+                    </span>
+                    <span class="attack-tooltip-trigger">
+                        Damage: ${damageDesc} ${statMod >= 0 ? '+' : ''}${statMod}
+                        <div class="attack-tooltip">Damage: ${damageDesc} + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod})</div>
+                    </span>
+                </div>
+            `;
+        } else {
+            const statMod = Math.floor((state.stats[a.stat] - 10) / 2);
+            const hit = state.proficiencyBonus + statMod;
+            const dc = 8 + state.proficiencyBonus + statMod;
+
+            aDiv.innerHTML = `
+                <div class="attack-header">
+                    <strong class="editable" data-field="attacks.${idx}.name">${a.name}</strong>
+                    <div class="attack-controls">
+                        <button class="small-btn" onclick="moveAttack(${idx}, -1)">↑</button>
+                        <button class="small-btn" onclick="moveAttack(${idx}, 1)">↓</button>
+                        <button class="delete-btn" onclick="removeAttackFromList(${idx})">×</button>
+                    </div>
+                </div>
+                <div class="custom-attack-configs">
+                    <div class="config-row">
+                        <select onchange="updateAttackProperty(${idx}, 'attackType', this.value)">
+                            <option value="attack" ${a.attackType === 'attack' ? 'selected' : ''}>Attack</option>
+                            <option value="save" ${a.attackType === 'save' ? 'selected' : ''}>Save</option>
+                        </select>
+                        <span class="label">using</span>
+                        <select onchange="updateAttackProperty(${idx}, 'stat', this.value)">
+                            ${['str', 'dex', 'con', 'int', 'wis', 'cha'].map(s => `<option value="${s}" ${a.stat === s ? 'selected' : ''}>${s.toUpperCase()}</option>`).join('')}
+                        </select>
+                        ${a.attackType === 'save' ? `
+                            <span class="label">vs Enemy</span>
+                            <select onchange="updateAttackProperty(${idx}, 'saveStat', this.value)">
+                                ${['str', 'dex', 'con', 'int', 'wis', 'cha'].map(s => `<option value="${s}" ${a.saveStat === s ? 'selected' : ''}>${s.toUpperCase()}</option>`).join('')}
+                            </select>
+                        ` : ''}
+                    </div>
+                    <div class="config-row">
+                        <span class="label">Damage:</span>
+                        <span class="editable" data-field="attacks.${idx}.damage">${a.damage}</span>
+                        <label class="toggle-control">
+                            <input type="checkbox" ${a.addStatToDamage ? 'checked' : ''} onchange="updateAttackProperty(${idx}, 'addStatToDamage', this.checked)">
+                            <span>+Stat</span>
+                        </label>
+                    </div>
+                    <div class="config-row">
+                        <span class="label">Spell Level:</span>
+                        <select onchange="updateAttackProperty(${idx}, 'spellLevel', this.value === 'none' ? null : parseInt(this.value))">
+                            <option value="none" ${a.spellLevel === null ? 'selected' : ''}>None</option>
+                            <option value="0" ${a.spellLevel === 0 ? 'selected' : ''}>Cantrip</option>
+                            ${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(l => `<option value="${l}" ${a.spellLevel === l ? 'selected' : ''}>Lvl ${l}</option>`).join('')}
+                        </select>
+                        ${(a.spellLevel > 0) ? `<button class="small-btn" onclick="castAttackSpell(${idx})">Cast</button>` : ''}
+                    </div>
+                </div>
+                <div class="attack-details">
+                    ${a.attackType === 'attack' ? `
+                        <span class="attack-tooltip-trigger">
+                            Hit: +${hit}
+                            <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${a.stat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = +${hit}</div>
+                        </span>
+                    ` : `
+                        <span class="attack-tooltip-trigger">
+                            DC ${dc} ${a.saveStat.toUpperCase()} Save
+                            <div class="attack-tooltip">DC: 8 + PB (+${state.proficiencyBonus}) + ${a.stat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = ${dc}</div>
+                        </span>
+                    `}
+                    <span>
+                        Damage: ${a.damage} ${a.addStatToDamage ? (statMod >= 0 ? '+ ' + statMod : '- ' + Math.abs(statMod)) : ''}
+                    </span>
+                </div>
+                <div class="attack-description editable" data-field="attacks.${idx}.description" data-type="textarea" placeholder="Add description/effects...">${a.description || 'Add description...'}</div>
+            `;
+        }
+
+        aDiv.querySelectorAll('.editable').forEach(el => {
+            el.addEventListener('click', (e) => e.stopPropagation());
+            attachInlineEdit(el, el.dataset.field, el.dataset.type === 'number');
+        });
+
         attackDiv.appendChild(aDiv);
     });
 }
-
-window.updateWeaponStat = (idx, stat) => {
-    state.inventory[idx].preferredStat = stat;
-    saveState();
-    renderAll();
-};
 
 window.updateItem = (idx, field, val) => {
     state.inventory[idx][field] = val;
@@ -1468,6 +1579,10 @@ window.updateMoney = (field, val) => {
 };
 
 window.removeItem = (idx) => {
+    const item = state.inventory[idx];
+    if (item.id) {
+        state.attacks = state.attacks.filter(at => !(at.type === 'weapon' && at.itemId === item.id));
+    }
     state.inventory.splice(idx, 1);
     saveState();
     renderAll();
@@ -1489,22 +1604,80 @@ window.addInventoryItem = () => {
 };
 
 window.addCustomAttack = () => {
-    state.inventory.push({
+    state.attacks.push({
+        type: 'custom',
         name: 'New Attack',
-        type: 'Weapon',
-        quantity: 1,
-        weight: 2,
-        price: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
-        description: '1d8',
-        rarity: 'Common',
-        equipped: true
+        attackType: 'attack',
+        stat: 'int',
+        saveStat: 'dex',
+        damage: '1d8',
+        addStatToDamage: true,
+        description: '',
+        spellLevel: null
     });
     saveState();
     renderAll();
 };
 
+window.removeAttackFromList = (idx) => {
+    const attack = state.attacks[idx];
+    if (attack.type === 'weapon') {
+        const item = state.inventory.find(item => item.id === attack.itemId);
+        if (item) item.equipped = false;
+    }
+    state.attacks.splice(idx, 1);
+    saveState();
+    renderAll();
+};
+
+window.moveAttack = (idx, direction) => {
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= state.attacks.length) return;
+    const temp = state.attacks[idx];
+    state.attacks[idx] = state.attacks[newIdx];
+    state.attacks[newIdx] = temp;
+    saveState();
+    renderAll();
+};
+
+window.updateAttackProperty = (idx, field, value) => {
+    state.attacks[idx][field] = value;
+    saveState();
+    renderAll();
+};
+
+window.castAttackSpell = (idx) => {
+    const attack = state.attacks[idx];
+    if (attack.spellLevel === null || attack.spellLevel === 0) return;
+
+    const level = attack.spellLevel;
+    if (!state.spells.slots[level]) {
+        alert(`No spell slots for level ${level} defined!`);
+        return;
+    }
+    if (state.spells.slots[level].used < state.spells.slots[level].max) {
+        state.spells.slots[level].used++;
+        saveState();
+        renderAll();
+    } else {
+        alert(`No level ${level} spell slots left!`);
+    }
+};
+
 window.toggleEquip = (idx) => {
-    state.inventory[idx].equipped = !state.inventory[idx].equipped;
+    const item = state.inventory[idx];
+    item.equipped = !item.equipped;
+
+    if (item.type && item.type.toLowerCase() === 'weapon') {
+        if (item.equipped) {
+            if (!state.attacks.some(at => at.type === 'weapon' && at.itemId === item.id)) {
+                state.attacks.push({ type: 'weapon', itemId: item.id });
+            }
+        } else {
+            state.attacks = state.attacks.filter(at => !(at.type === 'weapon' && at.itemId === item.id));
+        }
+    }
+
     saveState();
     renderAll();
 };
