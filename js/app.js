@@ -79,9 +79,11 @@ function syncStateWithMasterData(targetState) {
         targetState.settings = {
             featureSort: 'name',
             spellSort: 'level',
-            planSort: 'name'
+            planSort: 'name',
+            theme: 'punk-theme'
         };
     }
+    if (!targetState.settings.theme) targetState.settings.theme = 'punk-theme';
 
     if (!targetState.plans) targetState.plans = characterData.plans;
     targetState.plans.all = characterData.plans.all;
@@ -277,6 +279,13 @@ async function init() {
     renderTabs();
 }
 
+function applyTheme(theme) {
+    document.body.classList.remove('punk-theme', 'parchment-theme');
+    document.body.classList.add(theme);
+    const themeSelect = document.getElementById('theme-select');
+    if (themeSelect) themeSelect.value = theme;
+}
+
 function setupAuth() {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -290,6 +299,7 @@ function setupAuth() {
             } catch (e) {
                 console.error("Failed to load state, rendering with default/local state", e);
             }
+            applyTheme(state.settings.theme || 'punk-theme');
             renderAll();
         } else {
             currentUser = null;
@@ -345,6 +355,12 @@ function setupEventListeners() {
     document.getElementById('rest-long').addEventListener('click', () => {
         handleLongRest();
         renderAll();
+    });
+    document.getElementById('theme-select').addEventListener('change', (e) => {
+        const newTheme = e.target.value;
+        state.settings.theme = newTheme;
+        applyTheme(newTheme);
+        saveState();
     });
     attachInlineEdit(document.getElementById('char-name'), 'name');
 }
