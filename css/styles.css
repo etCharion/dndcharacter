@@ -14,6 +14,7 @@
     --card-bg: #111;
     --tab-inactive: #222;
     --gold: #d4af37;
+    --accent-contrast: #fff;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,6 +47,9 @@ body.parchment-theme {
     --card-bg: #f5edd6;
     --tab-inactive: #e0d6b9;
     --gold: #b8860b;
+    --accent-contrast: #f4e4bc;
+    --filter-inactive-bg: #d7ccc8;
+    --filter-inactive-text: #5d4037;
 
     background-image: url('https://www.transparenttextures.com/patterns/papyros.png');
 }
@@ -374,7 +378,7 @@ header h2, .extra-section h3, .skills-container h3, .category-header h3, .sd-tra
 
 .tab-btn.active {
     background: var(--accent-color);
-    color: #000;
+    color: var(--accent-contrast);
     border-color: var(--accent-color);
 }
 
@@ -1238,9 +1242,9 @@ textarea.inline-edit {
 }
 
 .filter-btn {
-    background: #222;
-    border: 1px solid #444;
-    color: var(--muted-text);
+    background: var(--filter-inactive-bg, #222);
+    border: 1px solid var(--border-color);
+    color: var(--filter-inactive-text, var(--muted-text));
     padding: 3px 8px;
     font-size: 0.75rem;
     cursor: pointer;
@@ -1255,7 +1259,7 @@ textarea.inline-edit {
 
 .filter-btn.active {
     background: var(--accent-color);
-    color: #000;
+    color: var(--accent-contrast);
     border-color: var(--accent-color);
 }
 
@@ -1332,7 +1336,7 @@ textarea.inline-edit {
 
 .stat-toggle.active {
     background: var(--gold);
-    color: #000;
+    color: var(--accent-contrast);
     border-color: var(--gold);
 }
 

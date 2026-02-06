@@ -284,6 +284,12 @@ function applyTheme(theme) {
     document.body.classList.add(theme);
     const themeSelect = document.getElementById('theme-select');
     if (themeSelect) themeSelect.value = theme;
+
+    // Update browser theme color to match the theme
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+        metaThemeColor.setAttribute('content', theme === 'parchment-theme' ? '#8b4513' : '#a855f7');
+    }
 }
 
 function setupAuth() {
@@ -2250,5 +2256,6 @@ init();
 
 // Expose for testing and inline event handlers
 window.renderAll = renderAll;
+window.applyTheme = applyTheme;
 window.__RENDER_ALL__ = renderAll;
 window.__STATE__ = state;
