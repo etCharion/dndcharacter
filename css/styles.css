@@ -1416,15 +1416,30 @@ hr {
 }
 
 .small-btn.success {
-    background-color: #22c55e;
-    color: white;
-    border-color: #22c55e;
+    background: transparent;
+    color: var(--neon-cyan);
+    border: 1px solid var(--neon-cyan);
+    opacity: 0.8;
+}
+
+.small-btn.success:hover {
+    background: var(--neon-cyan);
+    color: var(--bg-color);
+    opacity: 1;
 }
 
 .small-btn.danger {
-    background-color: #ef4444;
-    color: white;
+    background: transparent;
+    color: var(--muted-text);
+    border: 1px solid var(--border-color);
+    opacity: 0.7;
+}
+
+.small-btn.danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
     border-color: #ef4444;
+    opacity: 1;
 }
 
 .infusion-counter {
