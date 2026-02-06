@@ -85,17 +85,34 @@ function syncStateWithMasterData(targetState) {
     }
     if (!targetState.settings.theme) targetState.settings.theme = 'punk-theme';
 
-    if (!targetState.plans) targetState.plans = characterData.plans;
-    targetState.plans.all = characterData.plans.all;
+    if (!targetState.plans) {
+        targetState.plans = JSON.parse(JSON.stringify(characterData.plans));
+    } else {
+        // Add missing plans to all, but don't overwrite
+        characterData.plans.all.forEach(masterPlan => {
+            if (!targetState.plans.all.some(p => p.name === masterPlan.name)) {
+                targetState.plans.all.push({ ...masterPlan });
+            }
+        });
+    }
 
-    if (!targetState.spells) targetState.spells = characterData.spells;
-    targetState.spells.all = characterData.spells.all;
+    if (!targetState.spells) {
+        targetState.spells = JSON.parse(JSON.stringify(characterData.spells));
+    } else {
+        // Add missing spells to all, but don't overwrite
+        characterData.spells.all.forEach(masterSpell => {
+            if (!targetState.spells.all.some(s => s.name === masterSpell.name)) {
+                targetState.spells.all.push({ ...masterSpell });
+            }
+        });
+    }
 
     targetState.spells.prepared.forEach(ps => {
         const master = characterData.spells.all.find(s => s.name === ps.name);
         if (master) {
-            const { alwaysPrepared, ...masterData } = master;
+            const { alwaysPrepared, description, ...masterData } = master;
             Object.assign(ps, masterData);
+            if (ps.description === undefined) ps.description = description;
             if (alwaysPrepared !== undefined) ps.alwaysPrepared = alwaysPrepared;
         }
     });
@@ -107,7 +124,7 @@ function syncStateWithMasterData(targetState) {
         }
         if (master) {
             f.name = master.name;
-            f.description = master.description;
+            if (f.description === undefined) f.description = master.description;
             f.level = master.level;
             if (master.actions) f.actions = master.actions;
             else delete f.actions;
@@ -985,8 +1002,10 @@ function attachInlineEdit(element, field, isNumeric = false) {
     element.addEventListener('click', () => {
         if (element.querySelector('input') || element.querySelector('textarea')) return;
 
-        const originalValue = element.innerText.replace('+', '').split('/')[0].trim();
         const type = element.dataset.type || (isNumeric ? 'number' : 'text');
+        const originalValue = type === 'textarea'
+            ? element.innerHTML.trim()
+            : element.innerText.replace('+', '').split('/')[0].trim();
 
         const input = document.createElement(type === 'textarea' ? 'textarea' : 'input');
         if (type !== 'textarea') {
@@ -1170,7 +1189,7 @@ function renderFeatures(filter = null) {
                     <span class="url-edit-label">URL:</span>
                     <span class="editable url-editable" data-field="features.${index}.url" data-placeholder="Auto">${feat.url || ''}</span>
                 </div>
-                <div class="feature-desc">${feat.description}</div>
+                <div class="feature-desc editable" data-field="features.${index}.description" data-type="textarea">${feat.description}</div>
                 ${feat.details ? `<div class="feature-details">${feat.details}</div>` : ''}
                 ${feat.limitedUse ? renderLimitedUse(feat, 'feature', index) : ''}
             </div>
@@ -1400,7 +1419,7 @@ function renderSpells(filter = null) {
                         <span class="editable url-editable" data-field="spells.prepared.${originalIdx}.url" data-placeholder="Auto">${spell.url || ''}</span>
                     </div>
                     <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
-                    ${spell.description || 'No description.'}
+                    <div class="editable" data-field="spells.prepared.${originalIdx}.description" data-type="textarea">${spell.description || 'No description.'}</div>
                 </div>
             </div>
         `;
@@ -1442,11 +1461,16 @@ function renderSpells(filter = null) {
                         <button class="small-btn" onclick="event.stopPropagation(); copyToClipboard(\`${spell.description.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)">Copy</button>
                     </div>
                     <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
-                    ${spell.description || 'No description.'}
+                    <div class="editable" data-field="spells.all.${originalIdx}.description" data-type="textarea">${spell.description || 'No description.'}</div>
                 </div>
             </div>
         `;
         allSpellsDiv.appendChild(sDiv);
+    });
+
+    allSpellsDiv.querySelectorAll('.editable').forEach(el => {
+        el.addEventListener('click', (e) => e.stopPropagation());
+        attachInlineEdit(el, el.dataset.field);
     });
 }
 
@@ -2256,11 +2280,16 @@ function renderPlans(filter = '') {
                         <button class="small-btn" onclick="event.stopPropagation(); copyToClipboard(\`${plan.description.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)">Copy</button>
                     </div>
                     <div><em>${plan.type}</em></div>
-                    ${plan.description}
+                    <div class="editable" data-field="plans.all.${originalIdx}.description" data-type="textarea">${plan.description}</div>
                 </div>
             </div>
         `;
         allPlansDiv.appendChild(pDiv);
+    });
+
+    allPlansDiv.querySelectorAll('.editable').forEach(el => {
+        el.addEventListener('click', (e) => e.stopPropagation());
+        attachInlineEdit(el, el.dataset.field);
     });
 }
 
