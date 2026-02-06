@@ -184,7 +184,7 @@ export const characterData = {
             1: { max: 4, used: 0 },
             2: { max: 2, used: 0 }
         },
-        prepared: allSpells.filter(s => s.alwaysPrepared || s.level === 0),
+        prepared: allSpells.filter(s => s.alwaysPrepared || ["Acid Splash", "Fire Bolt"].includes(s.name)),
         all: allSpells
     },
     plans: {

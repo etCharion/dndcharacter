@@ -593,6 +593,10 @@ function renderStats() {
             <span class="value editable" data-field="spellAttackBonus" data-type="number">+${state.spellAttackBonus}</span>
         </div>
         <div class="essential-item">
+            <span class="label">Spell Modifier</span>
+            <span class="value">${Math.floor((state.stats.int - 10) / 2) >= 0 ? '+' : ''}${Math.floor((state.stats.int - 10) / 2)}</span>
+        </div>
+        <div class="essential-item">
             <span class="label">Passive Perc.</span>
             <span class="value editable" data-field="skills.perception.passive" data-type="number">${state.skills.perception.passive}</span>
         </div>
@@ -1037,6 +1041,32 @@ window.toggleSavingThrow = (stat) => {
     renderAll();
 };
 
+window.copyToClipboard = (text, btn) => {
+    const cleanText = text.replace(/<[^>]*>/g, ''); // Strip HTML
+    navigator.clipboard.writeText(cleanText).then(() => {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = 'Copied!';
+        btn.classList.add('success');
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('success');
+        }, 2000);
+    });
+};
+
+function getWikidotUrl(item, type) {
+    if (item.url) return item.url;
+    const slug = item.name.toLowerCase()
+        .replace(/ \+1/g, '-1')
+        .replace(/ /g, '-')
+        .replace(/[^\w-]/g, '');
+
+    if (type === 'spell') return `http://dnd2024.wikidot.com/spell:${slug}`;
+    if (type === 'feat') return `http://dnd2024.wikidot.com/feat:${slug}`;
+
+    return `http://dnd2024.wikidot.com/search:site/q/${encodeURIComponent(item.name)}`;
+}
+
 window.updateStateByPath = function(path, value) {
     const parts = path.split('.');
     let current = state;
@@ -1126,17 +1156,31 @@ function renderFeatures(filter = null) {
         const item = document.createElement('div');
         item.className = `feature-item ${isExpanded ? 'expanded-item' : ''}`;
         item.dataset.index = index;
+        const wikiType = feat.source.includes('Feat') ? 'feat' : 'feature';
+        const wikiUrl = getWikidotUrl(feat, wikiType);
+
         item.innerHTML = `
             <div class="feature-header" onclick="toggleFeatureExpanded(${index})">
                 <strong>${feat.name}</strong> <span>${feat.source}</span>
             </div>
             <div class="feature-body ${isExpanded ? '' : 'hidden'}">
+                <div class="item-actions-row">
+                    <a href="${wikiUrl}" target="_blank" class="wiki-link">Wiki ↗</a>
+                    <button class="small-btn" onclick="copyToClipboard(\`${feat.description.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)">Copy</button>
+                    <span class="url-edit-label">URL:</span>
+                    <span class="editable url-editable" data-field="features.${index}.url" data-placeholder="Auto">${feat.url || ''}</span>
+                </div>
                 <div class="feature-desc">${feat.description}</div>
                 ${feat.details ? `<div class="feature-details">${feat.details}</div>` : ''}
                 ${feat.limitedUse ? renderLimitedUse(feat, 'feature', index) : ''}
             </div>
         `;
         container.appendChild(item);
+    });
+
+    container.querySelectorAll('.editable').forEach(el => {
+        el.addEventListener('click', (e) => e.stopPropagation());
+        attachInlineEdit(el, el.dataset.field);
     });
 }
 
@@ -1334,7 +1378,9 @@ function renderSpells(filter = null) {
         const previewInfo = `Lvl ${spell.level} | ${spell.castingTime} | ${spell.range} | ${spell.duration} | ${comps}`;
 
         const castBtn = spell.level > 0 ? `<button onclick="event.stopPropagation(); castSpell(${originalIdx})">Cast</button>` : '';
-        const unprepareBtn = (spell.alwaysPrepared || spell.level === 0) ? '' : `<button onclick="event.stopPropagation(); unprepareSpell(${originalIdx})">Unprepare</button>`;
+        const unprepareBtn = spell.alwaysPrepared ? '' : `<button onclick="event.stopPropagation(); unprepareSpell(${originalIdx})">Unprepare</button>`;
+
+        const wikiUrl = getWikidotUrl(spell, 'spell');
 
         sDiv.innerHTML = `
             <div onclick="toggleSpellExpanded('prepared-${spell.name}')">
@@ -1347,12 +1393,23 @@ function renderSpells(filter = null) {
                     </div>
                 </div>
                 <div class="spell-desc ${isExpanded ? '' : 'hidden'}">
+                    <div class="item-actions-row">
+                        <a href="${wikiUrl}" target="_blank" class="wiki-link">Wiki ↗</a>
+                        <button class="small-btn" onclick="event.stopPropagation(); copyToClipboard(\`${spell.description.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)">Copy</button>
+                        <span class="url-edit-label">URL:</span>
+                        <span class="editable url-editable" data-field="spells.prepared.${originalIdx}.url" data-placeholder="Auto">${spell.url || ''}</span>
+                    </div>
                     <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
                     ${spell.description || 'No description.'}
                 </div>
             </div>
         `;
         preparedDiv.appendChild(sDiv);
+    });
+
+    preparedDiv.querySelectorAll('.editable').forEach(el => {
+        el.addEventListener('click', (e) => e.stopPropagation());
+        attachInlineEdit(el, el.dataset.field);
     });
 
     const allSpellsDiv = document.getElementById('all-spells-list');
@@ -1370,6 +1427,8 @@ function renderSpells(filter = null) {
         const comps = spell.components ? spell.components.split('(')[0].trim() : '';
         const previewInfo = `Lvl ${spell.level} | ${spell.castingTime} | ${spell.range} | ${spell.duration} | ${comps}`;
 
+        const wikiUrl = getWikidotUrl(spell, 'spell');
+
         sDiv.innerHTML = `
             <div onclick="toggleSpellExpanded('all-${spell.name}')">
                 <div class="spell-header">
@@ -1378,6 +1437,10 @@ function renderSpells(filter = null) {
                     <button onclick="event.stopPropagation(); prepareSpell(${originalIdx})">Prepare</button>
                 </div>
                 <div class="spell-desc ${isExpanded ? '' : 'hidden'}">
+                    <div class="item-actions-row">
+                        <a href="${wikiUrl}" target="_blank" class="wiki-link">Wiki ↗</a>
+                        <button class="small-btn" onclick="event.stopPropagation(); copyToClipboard(\`${spell.description.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)">Copy</button>
+                    </div>
                     <div><em>${spell.school || ''} | ${spell.type || ''}</em></div>
                     ${spell.description || 'No description.'}
                 </div>
@@ -1648,7 +1711,7 @@ window.renderInventory = function(filter = null) {
 
         const isExpanded = uiState.expandedInventory.has(idx);
         const iDiv = document.createElement('div');
-        iDiv.className = `inv-item-card ${isExpanded ? 'expanded-item' : ''}`;
+        iDiv.className = `inv-item-card ${isExpanded ? 'expanded-item' : ''} ${item.isPlanItem ? 'plan-item' : ''}`;
 
         const priceSummary = getPriceInCP(item.price) > 0 ? formatCurrency(getPriceInCP(item.price)) : '';
 
@@ -2108,6 +2171,7 @@ function renderPlans(filter = '') {
 
         const rarityInfo = plan.rarity ? `(${plan.rarity})` : '';
         const levelInfo = plan.level ? `Lvl ${plan.level}` : '';
+        const wikiUrl = getWikidotUrl(plan, 'plan');
 
         pDiv.innerHTML = `
             <div onclick="togglePlanExpanded('prepared-${idx}')">
@@ -2117,6 +2181,12 @@ function renderPlans(filter = '') {
                     <button onclick="event.stopPropagation(); unpreparePlan(${idx})">Remove</button>
                 </div>
                 <div class="plan-desc ${isExpanded ? '' : 'hidden'}">
+                    <div class="item-actions-row">
+                        <a href="${wikiUrl}" target="_blank" class="wiki-link">Wiki ↗</a>
+                        <button class="small-btn" onclick="event.stopPropagation(); copyToClipboard(\`${plan.description.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)">Copy</button>
+                        <span class="url-edit-label">URL:</span>
+                        <span class="editable url-editable" data-field="plans.prepared.${idx}.url" data-placeholder="Auto">${plan.url || ''}</span>
+                    </div>
                     <div><em>${plan.type}</em></div>
                     <div class="editable" data-field="plans.prepared.${idx}.description" data-type="textarea">${plan.description}</div>
                 </div>
@@ -2146,6 +2216,7 @@ function renderPlans(filter = '') {
 
         const rarityInfo = plan.rarity ? `(${plan.rarity})` : '';
         const levelInfo = plan.level ? `Lvl ${plan.level}` : '';
+        const wikiUrl = getWikidotUrl(plan, 'plan');
 
         pDiv.innerHTML = `
             <div onclick="togglePlanExpanded('all-${idx}')">
@@ -2155,6 +2226,10 @@ function renderPlans(filter = '') {
                     <button onclick="event.stopPropagation(); preparePlan(${idx})">Select</button>
                 </div>
                 <div class="plan-desc ${isExpanded ? '' : 'hidden'}">
+                    <div class="item-actions-row">
+                        <a href="${wikiUrl}" target="_blank" class="wiki-link">Wiki ↗</a>
+                        <button class="small-btn" onclick="event.stopPropagation(); copyToClipboard(\`${plan.description.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)">Copy</button>
+                    </div>
                     <div><em>${plan.type}</em></div>
                     ${plan.description}
                 </div>
@@ -2259,18 +2334,88 @@ function formatCurrency(totalCP) {
 }
 
 window.preparePlan = (idx) => {
-    state.plans.prepared.push({ ...state.plans.all[idx] });
+    const plan = { ...state.plans.all[idx] };
+    plan.id = 'prep_plan_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+    state.plans.prepared.push(plan);
+
+    // Add to inventory
+    state.inventory.push({
+        id: 'item_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(),
+        name: plan.name + ' (Plán)',
+        type: plan.type.includes('Armor') ? 'Armor' : (plan.type.includes('Weapon') ? 'Weapon' : 'Other'),
+        quantity: 1,
+        weight: 0,
+        price: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+        description: plan.description,
+        rarity: plan.rarity || 'Common',
+        equipped: false,
+        isPlanItem: true,
+        sourcePlanId: plan.id
+    });
+
     saveState();
     renderAll();
 };
 
 window.unpreparePlan = (idx) => {
+    const plan = state.plans.prepared[idx];
+
+    // Remove from inventory
+    if (plan.id) {
+        state.inventory = state.inventory.filter(item => item.sourcePlanId !== plan.id);
+    } else {
+        // Fallback for older states
+        state.inventory = state.inventory.filter(item => !(item.isPlanItem && item.name.startsWith(plan.name)));
+    }
+
     state.plans.prepared.splice(idx, 1);
     saveState();
     renderAll();
 };
 
 function renderAll() {
+    if (!state || !state.plans || !state.plans.prepared) return;
+
+    // Ensure all prepared plans have a linked inventory item
+    let changed = false;
+    state.plans.prepared.forEach(plan => {
+        if (!plan.id) {
+            plan.id = 'prep_plan_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            changed = true;
+        }
+        const existing = state.inventory.find(item => item.isPlanItem && item.sourcePlanId === plan.id);
+        if (!existing) {
+            state.inventory.push({
+                id: 'item_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(),
+                name: plan.name + ' (Plán)',
+                type: plan.type ? (plan.type.includes('Armor') ? 'Armor' : (plan.type.includes('Weapon') ? 'Weapon' : 'Other')) : 'Other',
+                quantity: 1,
+                weight: 0,
+                price: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+                description: plan.description,
+                rarity: plan.rarity || 'Common',
+                equipped: false,
+                isPlanItem: true,
+                sourcePlanId: plan.id
+            });
+            changed = true;
+        }
+    });
+
+    // Remove plan items that are no longer prepared
+    const initialCount = state.inventory.length;
+    const preparedIds = state.plans.prepared.map(p => p.id).filter(id => id);
+    state.inventory = state.inventory.filter(item => {
+        if (item.isPlanItem) {
+            return preparedIds.includes(item.sourcePlanId);
+        }
+        return true;
+    });
+
+    if (changed || state.inventory.length !== initialCount) {
+        saveState();
+    }
+
     renderStats();
     renderFeatures();
     renderSpells();

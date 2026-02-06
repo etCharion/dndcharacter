@@ -823,6 +823,15 @@ button:hover { background: var(--accent-color); color: var(--bg-color); }
     border-left-color: var(--accent-color);
 }
 
+.inv-item-card.plan-item {
+    border-left-color: var(--gold);
+    background-color: rgba(212, 175, 55, 0.05);
+}
+
+body.parchment-theme .inv-item-card.plan-item {
+    background-color: rgba(184, 134, 11, 0.1);
+}
+
 .inv-item-header {
     padding: 10px;
     display: flex;
@@ -1404,6 +1413,60 @@ hr {
 .small-btn {
     padding: 3px 8px;
     font-size: 0.7rem;
+}
+
+.small-btn.success {
+    background-color: #22c55e;
+    color: white;
+    border-color: #22c55e;
+}
+
+.item-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    flex-wrap: wrap;
+}
+
+.wiki-link {
+    font-size: 0.75rem;
+    color: var(--neon-cyan);
+    text-decoration: none;
+    font-family: var(--header-font);
+    border: 1px solid var(--border-color);
+    padding: 2px 8px;
+    background: rgba(0, 0, 0, 0.2);
+    transition: all 0.2s;
+}
+
+.wiki-link:hover {
+    background: var(--accent-color);
+    color: var(--accent-contrast);
+    border-color: var(--accent-color);
+}
+
+.url-edit-label {
+    font-size: 0.65rem;
+    color: var(--muted-text);
+    text-transform: uppercase;
+}
+
+.url-editable {
+    font-size: 0.7rem;
+    color: var(--muted-text);
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: monospace;
+}
+
+.url-editable:empty:before {
+    content: attr(data-placeholder);
+    opacity: 0.5;
 }
 
 .hidden { display: none !important; }

@@ -81,6 +81,7 @@ export const allSpells = [
         level: 0,
         school: "Transmutation",
         type: "Artificer, Bard, Cleric, Druid, Sorcerer, Wizard",
+        alwaysPrepared: true,
         castingTime: "1 Action",
         range: "Touch",
         components: "V, S, M (two lodestones)",
