@@ -1,6 +1,7 @@
 export const allPlans = [
     {
         name: "Alchemy Jug",
+        url: "http://dnd2024.wikidot.com/magic-item:alchemy-jug",
         level: 2,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -8,6 +9,7 @@ export const allPlans = [
     },
     {
         name: "Bag of Holding",
+        url: "http://dnd2024.wikidot.com/magic-item:bag-of-holding",
         level: 2,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -15,6 +17,7 @@ export const allPlans = [
     },
     {
         name: "Cap of Water Breathing",
+        url: "http://dnd2024.wikidot.com/magic-item:cap-of-water-breathing",
         level: 2,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -22,6 +25,7 @@ export const allPlans = [
     },
     {
         name: "Goggles of Night",
+        url: "http://dnd2024.wikidot.com/magic-item:goggles-of-night",
         level: 2,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -29,6 +33,7 @@ export const allPlans = [
     },
     {
         name: "Manifold Tool",
+        url: "http://dnd2024.wikidot.com/magic-item:manifold-tool",
         level: 2,
         type: "Wondrous Item",
         rarity: "Common (Requires Attunement)",
@@ -36,6 +41,7 @@ export const allPlans = [
     },
     {
         name: "Repeating Shot",
+        url: "http://dnd2024.wikidot.com/magic-item:repeating-shot",
         level: 2,
         type: "Weapon (Any Simple or Martial with the Ammunition Property)",
         rarity: "Uncommon (Requires Attunement)",
@@ -43,6 +49,7 @@ export const allPlans = [
     },
     {
         name: "Returning Weapon",
+        url: "http://dnd2024.wikidot.com/magic-item:returning-weapon",
         level: 2,
         type: "Weapon (Any Simple or Martial with the Thrown Property)",
         rarity: "Uncommon",
@@ -50,6 +57,7 @@ export const allPlans = [
     },
     {
         name: "Rope of Climbing",
+        url: "http://dnd2024.wikidot.com/magic-item:rope-of-climbing",
         level: 2,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -57,6 +65,7 @@ export const allPlans = [
     },
     {
         name: "Sending Stones",
+        url: "http://dnd2024.wikidot.com/magic-item:sending-stones",
         level: 2,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -64,6 +73,7 @@ export const allPlans = [
     },
     {
         name: "Shield +1",
+        url: "http://dnd2024.wikidot.com/magic-item:shield-1-2-or-3",
         level: 2,
         type: "Armor (Shield)",
         rarity: "Uncommon",
@@ -71,6 +81,7 @@ export const allPlans = [
     },
     {
         name: "Wand of Magic Detection",
+        url: "http://dnd2024.wikidot.com/magic-item:wand-of-magic-detection",
         level: 2,
         type: "Wand",
         rarity: "Uncommon",
@@ -78,6 +89,7 @@ export const allPlans = [
     },
     {
         name: "Wand of Secrets",
+        url: "http://dnd2024.wikidot.com/magic-item:wand-of-secrets",
         level: 2,
         type: "Wand",
         rarity: "Uncommon",
@@ -85,6 +97,7 @@ export const allPlans = [
     },
     {
         name: "Wand of the War Mage +1",
+        url: "http://dnd2024.wikidot.com/magic-item:wand-of-the-war-mage-1-2-or-3",
         level: 2,
         type: "Wand",
         rarity: "Uncommon (Requires Attunement by a Spellcaster)",
@@ -92,6 +105,7 @@ export const allPlans = [
     },
     {
         name: "Weapon +1",
+        url: "http://dnd2024.wikidot.com/magic-item:weapon-1-2-or-3",
         level: 2,
         type: "Weapon (Any Simple or Martial)",
         rarity: "Uncommon",
@@ -99,6 +113,7 @@ export const allPlans = [
     },
     {
         name: "Wraps of Unarmed Power +1",
+        url: "http://dnd2024.wikidot.com/magic-item:wraps-of-unarmed-power",
         level: 2,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -106,6 +121,7 @@ export const allPlans = [
     },
     {
         name: "Armor +1",
+        url: "http://dnd2024.wikidot.com/magic-item:armor-1-2-or-3",
         level: 6,
         type: "Armor (Any Light, Medium, or Heavy)",
         rarity: "Rare",
@@ -113,6 +129,7 @@ export const allPlans = [
     },
     {
         name: "Boots of Elvenkind",
+        url: "http://dnd2024.wikidot.com/magic-item:boots-of-elvenkind",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -120,6 +137,7 @@ export const allPlans = [
     },
     {
         name: "Boots of the Winding Path",
+        url: "http://dnd2024.wikidot.com/magic-item:boots-of-the-winding-path",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon (Requires Attunement)",
@@ -127,6 +145,7 @@ export const allPlans = [
     },
     {
         name: "Cloak of Elvenkind",
+        url: "http://dnd2024.wikidot.com/magic-item:cloak-of-elvenkind",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon (Requires Attunement)",
@@ -134,6 +153,7 @@ export const allPlans = [
     },
     {
         name: "Cloak of the Manta Ray",
+        url: "http://dnd2024.wikidot.com/magic-item:cloak-of-the-manta-ray",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon (Requires Attunement)",
@@ -141,6 +161,7 @@ export const allPlans = [
     },
     {
         name: "Dazzling Weapon",
+        url: "http://dnd2024.wikidot.com/magic-item:dazzling-weapon",
         level: 6,
         type: "Weapon (Any Simple or Martial)",
         rarity: "Rare (Requires Attunement)",
@@ -148,6 +169,7 @@ export const allPlans = [
     },
     {
         name: "Eyes of Charming",
+        url: "http://dnd2024.wikidot.com/magic-item:eyes-of-charming",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon (Requires Attunement)",
@@ -155,6 +177,7 @@ export const allPlans = [
     },
     {
         name: "Eyes of Minute Seeing",
+        url: "http://dnd2024.wikidot.com/magic-item:eyes-of-minute-seeing",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -162,6 +185,7 @@ export const allPlans = [
     },
     {
         name: "Gloves of Thievery",
+        url: "http://dnd2024.wikidot.com/magic-item:gloves-of-thievery",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -169,6 +193,7 @@ export const allPlans = [
     },
     {
         name: "Helm of Awareness",
+        url: "http://dnd2024.wikidot.com/magic-item:helm-of-awareness",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -176,6 +201,7 @@ export const allPlans = [
     },
     {
         name: "Lantern of Revealing",
+        url: "http://dnd2024.wikidot.com/magic-item:lantern-of-revealing",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -183,6 +209,7 @@ export const allPlans = [
     },
     {
         name: "Mind Sharpener",
+        url: "http://dnd2024.wikidot.com/magic-item:mind-sharpener",
         level: 6,
         type: "Ring",
         rarity: "Uncommon (Requires Attunement)",
@@ -190,6 +217,7 @@ export const allPlans = [
     },
     {
         name: "Necklace of Adaptation",
+        url: "http://dnd2024.wikidot.com/magic-item:necklace-of-adaptation",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon (Requires Attunement)",
@@ -197,6 +225,7 @@ export const allPlans = [
     },
     {
         name: "Pipes of Haunting",
+        url: "http://dnd2024.wikidot.com/magic-item:pipes-of-haunting",
         level: 6,
         type: "Wondrous Item",
         rarity: "Uncommon",
@@ -204,6 +233,7 @@ export const allPlans = [
     },
     {
         name: "Repulsion Shield",
+        url: "http://dnd2024.wikidot.com/magic-item:repulsion-shield",
         level: 6,
         type: "Armor (Shield)",
         rarity: "Uncommon",
@@ -211,6 +241,7 @@ export const allPlans = [
     },
     {
         name: "Ring of Swimming",
+        url: "http://dnd2024.wikidot.com/magic-item:ring-of-swimming",
         level: 6,
         type: "Ring",
         rarity: "Uncommon",
@@ -218,6 +249,7 @@ export const allPlans = [
     },
     {
         name: "Ring of Water Walking",
+        url: "http://dnd2024.wikidot.com/magic-item:ring-of-water-walking",
         level: 6,
         type: "Ring",
         rarity: "Uncommon",
@@ -225,6 +257,7 @@ export const allPlans = [
     },
     {
         name: "Sentinel Shield",
+        url: "http://dnd2024.wikidot.com/magic-item:sentinel-shield",
         level: 6,
         type: "Armor (Shield)",
         rarity: "Uncommon",
@@ -232,6 +265,7 @@ export const allPlans = [
     },
     {
         name: "Spell-Refueling Ring",
+        url: "http://dnd2024.wikidot.com/magic-item:spell-refueling-ring",
         level: 6,
         type: "Ring",
         rarity: "Uncommon (Requires Attunement by a Spellcaster)",
@@ -239,6 +273,7 @@ export const allPlans = [
     },
     {
         name: "Wand of Magic Missiles",
+        url: "http://dnd2024.wikidot.com/magic-item:wand-of-magic-missiles",
         level: 6,
         type: "Wand",
         rarity: "Uncommon",
@@ -246,6 +281,7 @@ export const allPlans = [
     },
     {
         name: "Wand of Web",
+        url: "http://dnd2024.wikidot.com/magic-item:wand-of-web",
         level: 6,
         type: "Wand",
         rarity: "Uncommon (Requires Attunement by a Spellcaster)",
@@ -253,6 +289,7 @@ export const allPlans = [
     },
     {
         name: "Weapon of Warning",
+        url: "http://dnd2024.wikidot.com/magic-item:weapon-of-warning",
         level: 6,
         type: "Weapon (Any Simple or Martial)",
         rarity: "Uncommon (Requires Attunement)",
@@ -260,6 +297,7 @@ export const allPlans = [
     },
     {
         name: "Common magic item",
+        url: "http://dnd2024.wikidot.com/magic-item:all",
         level: 2,
         type: "Varies",
         rarity: "Common",
