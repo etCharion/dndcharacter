@@ -163,6 +163,8 @@ function syncStateWithMasterData(targetState) {
     targetState.inventory.forEach(item => {
         if (item.quantity === undefined) item.quantity = 1;
         if (item.weight === undefined) item.weight = 0;
+        if (item.attackBonus === undefined) item.attackBonus = 0;
+        if (item.damageBonus === undefined) item.damageBonus = 0;
         if (item.rarity === undefined) item.rarity = 'Common';
         if (item.description === undefined) item.description = item.properties || '';
         if (item.type) {
@@ -247,10 +249,14 @@ function syncStateWithMasterData(targetState) {
             return true;
         });
 
-        // Ensure custom attacks have IDs
+        // Ensure custom attacks have IDs and bonuses
         targetState.attacks.forEach(at => {
-            if (at.type !== 'weapon' && !at.id) {
-                at.id = 'atk_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            if (at.type !== 'weapon') {
+                if (at.attackBonus === undefined) at.attackBonus = 0;
+                if (at.damageBonus === undefined) at.damageBonus = 0;
+                if (!at.id) {
+                    at.id = 'atk_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+                }
             }
         });
     }
@@ -1713,43 +1719,57 @@ window.renderInventory = function(filter = null) {
         aDiv.className = 'attack-item';
 
         if (a.type === 'weapon') {
-            const item = state.inventory.find(i => i.id === a.itemId);
-            if (!item) return;
+            const itemIndex = state.inventory.findIndex(i => i.id === a.itemId);
+            if (itemIndex === -1) return;
+            const item = state.inventory[itemIndex];
 
             const prefStat = item.preferredStat || 'int';
             const statMod = Math.floor((state.stats[prefStat] - 10) / 2);
-            const hit = state.proficiencyBonus + statMod;
+            const atkBonus = item.attackBonus || 0;
+            const dmgBonus = item.damageBonus || 0;
+            const hit = state.proficiencyBonus + statMod + atkBonus;
             const damageDesc = item.description || '1d4';
+            const isExpanded = uiState.expandedCustomAttacks.has(item.id);
 
             aDiv.innerHTML = `
-                <div class="attack-header">
+                <div class="attack-header" onclick="toggleCustomAttackExpanded('${item.id}')">
                     <strong>${item.name}</strong>
                     <div class="attack-controls">
                         <div class="stat-toggles">
-                            <button class="stat-toggle ${prefStat === 'str' ? 'active' : ''}" onclick="updateWeaponStatById('${item.id}', 'str')">STR</button>
-                            <button class="stat-toggle ${prefStat === 'dex' ? 'active' : ''}" onclick="updateWeaponStatById('${item.id}', 'dex')">DEX</button>
-                            <button class="stat-toggle ${prefStat === 'int' ? 'active' : ''}" onclick="updateWeaponStatById('${item.id}', 'int')">INT</button>
+                            <button class="stat-toggle ${prefStat === 'str' ? 'active' : ''}" onclick="event.stopPropagation(); updateWeaponStatById('${item.id}', 'str')">STR</button>
+                            <button class="stat-toggle ${prefStat === 'dex' ? 'active' : ''}" onclick="event.stopPropagation(); updateWeaponStatById('${item.id}', 'dex')">DEX</button>
+                            <button class="stat-toggle ${prefStat === 'int' ? 'active' : ''}" onclick="event.stopPropagation(); updateWeaponStatById('${item.id}', 'int')">INT</button>
                         </div>
-                        <button class="small-btn" onclick="moveAttack(${idx}, -1)">↑</button>
-                        <button class="small-btn" onclick="moveAttack(${idx}, 1)">↓</button>
-                        <button class="delete-btn" onclick="removeAttackFromList(${idx})">×</button>
+                        <button class="small-btn" onclick="event.stopPropagation(); moveAttack(${idx}, -1)">↑</button>
+                        <button class="small-btn" onclick="event.stopPropagation(); moveAttack(${idx}, 1)">↓</button>
+                        <button class="delete-btn" onclick="event.stopPropagation(); removeAttackFromList(${idx})">×</button>
+                    </div>
+                </div>
+                <div class="custom-attack-configs ${isExpanded ? '' : 'hidden'}">
+                    <div class="config-row">
+                        <span class="label">Attack Bonus:</span>
+                        <span class="editable" data-field="inventory.${itemIndex}.attackBonus" data-type="number">${atkBonus}</span>
+                        <span class="label">Damage Bonus:</span>
+                        <span class="editable" data-field="inventory.${itemIndex}.damageBonus" data-type="number">${dmgBonus}</span>
                     </div>
                 </div>
                 <div class="attack-details">
                     <span class="attack-tooltip-trigger">
                         Hit: +${hit}
-                        <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = +${hit}</div>
+                        <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) ${atkBonus !== 0 ? (atkBonus > 0 ? '+ ' + atkBonus : '- ' + Math.abs(atkBonus)) : ''} = +${hit}</div>
                     </span>
                     <span class="attack-tooltip-trigger">
-                        Damage: ${damageDesc} ${statMod >= 0 ? '+' : ''}${statMod}
-                        <div class="attack-tooltip">Damage: ${damageDesc} + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod})</div>
+                        Damage: ${damageDesc} ${statMod + dmgBonus >= 0 ? '+' : ''}${statMod + dmgBonus}
+                        <div class="attack-tooltip">Damage: ${damageDesc} + ${prefStat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) ${dmgBonus !== 0 ? (dmgBonus > 0 ? '+ ' + dmgBonus : '- ' + Math.abs(dmgBonus)) : ''}</div>
                     </span>
                 </div>
             `;
         } else {
             const statMod = Math.floor((state.stats[a.stat] - 10) / 2);
-            const hit = state.proficiencyBonus + statMod;
-            const dc = 8 + state.proficiencyBonus + statMod;
+            const atkBonus = a.attackBonus || 0;
+            const dmgBonus = a.damageBonus || 0;
+            const hit = state.proficiencyBonus + statMod + atkBonus;
+            const dc = 8 + state.proficiencyBonus + statMod + atkBonus;
             const isExpanded = uiState.expandedCustomAttacks.has(a.id);
 
             aDiv.innerHTML = `
@@ -1780,7 +1800,13 @@ window.renderInventory = function(filter = null) {
                         ` : ''}
                     </div>
                     <div class="config-row">
-                        <span class="label">Damage:</span>
+                        <span class="label">Attack Bonus:</span>
+                        <span class="editable" data-field="attacks.${idx}.attackBonus" data-type="number">${atkBonus}</span>
+                        <span class="label">Damage Bonus:</span>
+                        <span class="editable" data-field="attacks.${idx}.damageBonus" data-type="number">${dmgBonus}</span>
+                    </div>
+                    <div class="config-row">
+                        <span class="label">Damage Dice:</span>
                         <span class="editable" data-field="attacks.${idx}.damage">${a.damage}</span>
                         <label class="toggle-control">
                             <input type="checkbox" ${a.addStatToDamage ? 'checked' : ''} onchange="updateAttackProperty(${idx}, 'addStatToDamage', this.checked)">
@@ -1800,16 +1826,16 @@ window.renderInventory = function(filter = null) {
                     ${a.attackType === 'attack' ? `
                         <span class="attack-tooltip-trigger">
                             Hit: +${hit}
-                            <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${a.stat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = +${hit}</div>
+                            <div class="attack-tooltip">Hit: PB (+${state.proficiencyBonus}) + ${a.stat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) ${atkBonus !== 0 ? (atkBonus > 0 ? '+ ' + atkBonus : '- ' + Math.abs(atkBonus)) : ''} = +${hit}</div>
                         </span>
                     ` : `
                         <span class="attack-tooltip-trigger">
                             DC ${dc} ${a.saveStat.toUpperCase()} Save
-                            <div class="attack-tooltip">DC: 8 + PB (+${state.proficiencyBonus}) + ${a.stat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) = ${dc}</div>
+                            <div class="attack-tooltip">DC: 8 + PB (+${state.proficiencyBonus}) + ${a.stat.toUpperCase()} (${statMod >= 0 ? '+' : ''}${statMod}) ${atkBonus !== 0 ? (atkBonus > 0 ? '+ ' + atkBonus : '- ' + Math.abs(atkBonus)) : ''} = ${dc}</div>
                         </span>
                     `}
                     <span>
-                        Damage: ${a.damage} ${a.addStatToDamage ? (statMod >= 0 ? '+ ' + statMod : '- ' + Math.abs(statMod)) : ''}
+                        Damage: ${a.damage} ${a.addStatToDamage ? (statMod + dmgBonus >= 0 ? '+ ' + (statMod + dmgBonus) : '- ' + Math.abs(statMod + dmgBonus)) : (dmgBonus !== 0 ? (dmgBonus > 0 ? '+ ' + dmgBonus : '- ' + Math.abs(dmgBonus)) : '')}
                     </span>
                 </div>
                 <div class="attack-description editable" data-field="attacks.${idx}.description" data-type="textarea" placeholder="Add description/effects...">${a.description || 'Add description...'}</div>
@@ -1872,6 +1898,8 @@ window.addCustomAttack = () => {
         saveStat: 'dex',
         damage: '1d8',
         addStatToDamage: true,
+        attackBonus: 0,
+        damageBonus: 0,
         description: '',
         spellLevel: null
     });
