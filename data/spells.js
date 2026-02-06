@@ -1,6 +1,7 @@
 export const allSpells = [
     {
         name: "Acid Splash",
+        url: "http://dnd2024.wikidot.com/spell:acid-splash",
         level: 0,
         school: "Evocation",
         type: "Artificer, Sorcerer, Wizard",
@@ -12,6 +13,7 @@ export const allSpells = [
     },
     {
         name: "Dancing Lights",
+        url: "http://dnd2024.wikidot.com/spell:dancing-lights",
         level: 0,
         school: "Illusion",
         type: "Artificer, Bard, Sorcerer, Wizard",
@@ -23,6 +25,7 @@ export const allSpells = [
     },
     {
         name: "Elementalism",
+        url: "http://dnd2024.wikidot.com/spell:elementalism",
         level: 0,
         school: "Transmutation",
         type: "Artificer, Druid, Sorcerer, Wizard",
@@ -34,6 +37,7 @@ export const allSpells = [
     },
     {
         name: "Fire Bolt",
+        url: "http://dnd2024.wikidot.com/spell:fire-bolt",
         level: 0,
         school: "Evocation",
         type: "Artificer, Sorcerer, Wizard",
@@ -45,6 +49,7 @@ export const allSpells = [
     },
     {
         name: "Guidance",
+        url: "http://dnd2024.wikidot.com/spell:guidance",
         level: 0,
         school: "Divination",
         type: "Artificer, Cleric, Druid",
@@ -56,6 +61,7 @@ export const allSpells = [
     },
     {
         name: "Light",
+        url: "http://dnd2024.wikidot.com/spell:light",
         level: 0,
         school: "Evocation",
         type: "Artificer, Bard, Cleric, Sorcerer, Wizard",
@@ -67,6 +73,7 @@ export const allSpells = [
     },
     {
         name: "Mage Hand",
+        url: "http://dnd2024.wikidot.com/spell:mage-hand",
         level: 0,
         school: "Conjuration",
         type: "Artificer, Bard, Sorcerer, Warlock, Wizard",
@@ -78,6 +85,7 @@ export const allSpells = [
     },
     {
         name: "Mending",
+        url: "http://dnd2024.wikidot.com/spell:mending",
         level: 0,
         school: "Transmutation",
         type: "Artificer, Bard, Cleric, Druid, Sorcerer, Wizard",
@@ -90,6 +98,7 @@ export const allSpells = [
     },
     {
         name: "Message",
+        url: "http://dnd2024.wikidot.com/spell:message",
         level: 0,
         school: "Transmutation",
         type: "Artificer, Bard, Druid, Sorcerer, Wizard",
@@ -101,6 +110,7 @@ export const allSpells = [
     },
     {
         name: "Poison Spray",
+        url: "http://dnd2024.wikidot.com/spell:poison-spray",
         level: 0,
         school: "Necromancy",
         type: "Artificer, Druid, Sorcerer, Warlock, Wizard",
@@ -112,6 +122,7 @@ export const allSpells = [
     },
     {
         name: "Prestidigitation",
+        url: "http://dnd2024.wikidot.com/spell:prestidigitation",
         level: 0,
         school: "Transmutation",
         type: "Artificer, Bard, Sorcerer, Warlock, Wizard",
@@ -123,6 +134,7 @@ export const allSpells = [
     },
     {
         name: "Ray of Frost",
+        url: "http://dnd2024.wikidot.com/spell:ray-of-frost",
         level: 0,
         school: "Evocation",
         type: "Artificer, Sorcerer, Wizard",
@@ -134,6 +146,7 @@ export const allSpells = [
     },
     {
         name: "Resistance",
+        url: "http://dnd2024.wikidot.com/spell:resistance",
         level: 0,
         school: "Abjuration",
         type: "Artificer, Cleric, Druid",
@@ -145,6 +158,7 @@ export const allSpells = [
     },
     {
         name: "Shocking Grasp",
+        url: "http://dnd2024.wikidot.com/spell:shocking-grasp",
         level: 0,
         school: "Evocation",
         type: "Artificer, Sorcerer, Wizard",
@@ -156,6 +170,7 @@ export const allSpells = [
     },
     {
         name: "Spare the Dying",
+        url: "http://dnd2024.wikidot.com/spell:spare-the-dying",
         level: 0,
         school: "Necromancy",
         type: "Artificer, Cleric, Druid",
@@ -167,6 +182,7 @@ export const allSpells = [
     },
     {
         name: "Thorn Whip",
+        url: "http://dnd2024.wikidot.com/spell:thorn-whip",
         level: 0,
         school: "Transmutation",
         type: "Artificer, Druid",
@@ -178,6 +194,7 @@ export const allSpells = [
     },
     {
         name: "Thunderclap",
+        url: "http://dnd2024.wikidot.com/spell:thunderclap",
         level: 0,
         school: "Evocation",
         type: "Artificer, Bard, Druid, Sorcerer, Warlock, Wizard",
@@ -189,6 +206,7 @@ export const allSpells = [
     },
     {
         name: "True Strike",
+        url: "http://dnd2024.wikidot.com/spell:true-strike",
         level: 0,
         school: "Divination",
         type: "Artificer, Bard, Sorcerer, Warlock, Wizard",
@@ -200,6 +218,7 @@ export const allSpells = [
     },
     {
         name: "Alarm",
+        url: "http://dnd2024.wikidot.com/spell:alarm",
         level: 1,
         school: "Abjuration",
         type: "Artificer, Ranger, Wizard",
@@ -211,6 +230,7 @@ export const allSpells = [
     },
     {
         name: "Cure Wounds",
+        url: "http://dnd2024.wikidot.com/spell:cure-wounds",
         level: 1,
         school: "Abjuration",
         type: "Artificer, Bard, Cleric, Druid, Paladin, Ranger",
@@ -222,6 +242,7 @@ export const allSpells = [
     },
     {
         name: "Detect Magic",
+        url: "http://dnd2024.wikidot.com/spell:detect-magic",
         level: 1,
         school: "Divination (Ritual)",
         type: "Artificer, Bard, Cleric, Druid, Paladin, Ranger, Sorcerer, Warlock, Wizard",
@@ -233,6 +254,7 @@ export const allSpells = [
     },
     {
         name: "Disguise Self",
+        url: "http://dnd2024.wikidot.com/spell:disguise-self",
         level: 1,
         school: "Illusion",
         type: "Artificer, Bard, Sorcerer, Wizard",
@@ -244,6 +266,7 @@ export const allSpells = [
     },
     {
         name: "Expeditious Retreat",
+        url: "http://dnd2024.wikidot.com/spell:expeditious-retreat",
         level: 1,
         school: "Transmutation",
         type: "Artificer, Sorcerer, Warlock, Wizard",
@@ -255,6 +278,7 @@ export const allSpells = [
     },
     {
         name: "Faerie Fire",
+        url: "http://dnd2024.wikidot.com/spell:faerie-fire",
         level: 1,
         school: "Evocation",
         type: "Artificer, Bard, Druid",
@@ -266,6 +290,7 @@ export const allSpells = [
     },
     {
         name: "False Life",
+        url: "http://dnd2024.wikidot.com/spell:false-life",
         level: 1,
         school: "Necromancy",
         type: "Artificer, Sorcerer, Wizard",
@@ -277,6 +302,7 @@ export const allSpells = [
     },
     {
         name: "Feather Fall",
+        url: "http://dnd2024.wikidot.com/spell:feather-fall",
         level: 1,
         school: "Transmutation",
         type: "Artificer, Bard, Sorcerer, Wizard",
@@ -288,6 +314,7 @@ export const allSpells = [
     },
     {
         name: "Grease",
+        url: "http://dnd2024.wikidot.com/spell:grease",
         level: 1,
         school: "Conjuration",
         type: "Artificer, Sorcerer, Wizard",
@@ -299,6 +326,7 @@ export const allSpells = [
     },
     {
         name: "Heroism",
+        url: "http://dnd2024.wikidot.com/spell:heroism",
         level: 1,
         school: "Enchantment",
         type: "Battle Smith (Always Prepared)",
@@ -311,6 +339,7 @@ export const allSpells = [
     },
     {
         name: "Identify",
+        url: "http://dnd2024.wikidot.com/spell:identify",
         level: 1,
         school: "Divination (Ritual)",
         type: "Artificer, Bard, Wizard",
@@ -322,6 +351,7 @@ export const allSpells = [
     },
     {
         name: "Jump",
+        url: "http://dnd2024.wikidot.com/spell:jump",
         level: 1,
         school: "Transmutation",
         type: "Artificer, Druid, Ranger, Sorcerer, Wizard",
@@ -333,6 +363,7 @@ export const allSpells = [
     },
     {
         name: "Longstrider",
+        url: "http://dnd2024.wikidot.com/spell:longstrider",
         level: 1,
         school: "Transmutation",
         type: "Artificer, Bard, Druid, Ranger, Wizard",
@@ -344,6 +375,7 @@ export const allSpells = [
     },
     {
         name: "Purify Food and Drink",
+        url: "http://dnd2024.wikidot.com/spell:purify-food-and-drink",
         level: 1,
         school: "Transmutation (Ritual)",
         type: "Artificer, Cleric, Druid, Paladin",
@@ -355,6 +387,7 @@ export const allSpells = [
     },
     {
         name: "Sanctuary",
+        url: "http://dnd2024.wikidot.com/spell:sanctuary",
         level: 1,
         school: "Abjuration",
         type: "Artificer, Cleric",
@@ -366,6 +399,7 @@ export const allSpells = [
     },
     {
         name: "Shield",
+        url: "http://dnd2024.wikidot.com/spell:shield",
         level: 1,
         school: "Abjuration",
         type: "Battle Smith (Always Prepared)",
@@ -378,6 +412,7 @@ export const allSpells = [
     },
     {
         name: "Aid",
+        url: "http://dnd2024.wikidot.com/spell:aid",
         level: 2,
         school: "Abjuration",
         type: "Artificer, Bard, Cleric, Druid, Paladin, Ranger",
@@ -389,6 +424,7 @@ export const allSpells = [
     },
     {
         name: "Alter Self",
+        url: "http://dnd2024.wikidot.com/spell:alter-self",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Sorcerer, Wizard",
@@ -400,6 +436,7 @@ export const allSpells = [
     },
     {
         name: "Arcane Lock",
+        url: "http://dnd2024.wikidot.com/spell:arcane-lock",
         level: 2,
         school: "Abjuration",
         type: "Artificer, Wizard",
@@ -411,6 +448,7 @@ export const allSpells = [
     },
     {
         name: "Arcane Vigor",
+        url: "http://dnd2024.wikidot.com/spell:arcane-vigor",
         level: 2,
         school: "Abjuration",
         type: "Artificer, Sorcerer, Wizard",
@@ -422,6 +460,7 @@ export const allSpells = [
     },
     {
         name: "Blur",
+        url: "http://dnd2024.wikidot.com/spell:blur",
         level: 2,
         school: "Illusion",
         type: "Artificer, Sorcerer, Wizard",
@@ -433,6 +472,7 @@ export const allSpells = [
     },
     {
         name: "Continual Flame",
+        url: "http://dnd2024.wikidot.com/spell:continual-flame",
         level: 2,
         school: "Evocation",
         type: "Artificer, Cleric, Druid, Wizard",
@@ -444,6 +484,7 @@ export const allSpells = [
     },
     {
         name: "Darkvision",
+        url: "http://dnd2024.wikidot.com/spell:darkvision",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Druid, Ranger, Sorcerer, Wizard",
@@ -455,6 +496,7 @@ export const allSpells = [
     },
     {
         name: "Dragon’s Breath",
+        url: "http://dnd2024.wikidot.com/spell:dragons-breath",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Sorcerer, Wizard",
@@ -466,6 +508,7 @@ export const allSpells = [
     },
     {
         name: "Enhance Ability",
+        url: "http://dnd2024.wikidot.com/spell:enhance-ability",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Bard, Cleric, Druid, Ranger, Sorcerer, Wizard",
@@ -477,6 +520,7 @@ export const allSpells = [
     },
     {
         name: "Enlarge/Reduce",
+        url: "http://dnd2024.wikidot.com/spell:enlargereduce",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Bard, Druid, Sorcerer, Wizard",
@@ -488,6 +532,7 @@ export const allSpells = [
     },
     {
         name: "Heat Metal",
+        url: "http://dnd2024.wikidot.com/spell:heat-metal",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Bard, Druid",
@@ -499,6 +544,7 @@ export const allSpells = [
     },
     {
         name: "Homunculus Servant",
+        url: "http://dnd2024.wikidot.com/spell:homunculus-servant",
         level: 2,
         school: "Conjuration",
         type: "Artificer",
@@ -510,6 +556,7 @@ export const allSpells = [
     },
     {
         name: "Invisibility",
+        url: "http://dnd2024.wikidot.com/spell:invisibility",
         level: 2,
         school: "Illusion",
         type: "Artificer, Bard, Sorcerer, Warlock, Wizard",
@@ -521,6 +568,7 @@ export const allSpells = [
     },
     {
         name: "Kinetic Jaunt",
+        url: "http://dnd2024.wikidot.com/spell:kinetic-jaunt",
         level: 2,
         school: "Transmutation",
         type: "Artificer (Non-2024)",
@@ -532,6 +580,7 @@ export const allSpells = [
     },
     {
         name: "Lesser Restoration",
+        url: "http://dnd2024.wikidot.com/spell:lesser-restoration",
         level: 2,
         school: "Abjuration",
         type: "Artificer, Bard, Cleric, Druid, Paladin, Ranger",
@@ -543,6 +592,7 @@ export const allSpells = [
     },
     {
         name: "Levitate",
+        url: "http://dnd2024.wikidot.com/spell:levitate",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Sorcerer, Wizard",
@@ -554,6 +604,7 @@ export const allSpells = [
     },
     {
         name: "Magic Mouth",
+        url: "http://dnd2024.wikidot.com/spell:magic-mouth",
         level: 2,
         school: "Illusion (Ritual)",
         type: "Artificer, Bard, Wizard",
@@ -565,6 +616,7 @@ export const allSpells = [
     },
     {
         name: "Magic Weapon",
+        url: "http://dnd2024.wikidot.com/spell:magic-weapon",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Paladin, Ranger, Sorcerer, Wizard",
@@ -576,6 +628,7 @@ export const allSpells = [
     },
     {
         name: "Protection from Poison",
+        url: "http://dnd2024.wikidot.com/spell:protection-from-poison",
         level: 2,
         school: "Abjuration",
         type: "Artificer, Cleric, Druid, Paladin, Ranger",
@@ -587,6 +640,7 @@ export const allSpells = [
     },
     {
         name: "Rope Trick",
+        url: "http://dnd2024.wikidot.com/spell:rope-trick",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Wizard",
@@ -598,6 +652,7 @@ export const allSpells = [
     },
     {
         name: "See Invisibility",
+        url: "http://dnd2024.wikidot.com/spell:see-invisibility",
         level: 2,
         school: "Divination",
         type: "Artificer, Bard, Sorcerer, Wizard",
@@ -609,6 +664,7 @@ export const allSpells = [
     },
     {
         name: "Shining Smite",
+        url: "http://dnd2024.wikidot.com/spell:shining-smite",
         level: 2,
         school: "Evocation",
         type: "Battle Smith (Always Prepared)",
@@ -621,6 +677,7 @@ export const allSpells = [
     },
     {
         name: "Spider Climb",
+        url: "http://dnd2024.wikidot.com/spell:spider-climb",
         level: 2,
         school: "Transmutation",
         type: "Artificer, Sorcerer, Warlock, Wizard",
@@ -632,6 +689,7 @@ export const allSpells = [
     },
     {
         name: "Warding Bond",
+        url: "http://dnd2024.wikidot.com/spell:warding-bond",
         level: 2,
         school: "Abjuration",
         type: "Battle Smith (Always Prepared)",
@@ -644,6 +702,7 @@ export const allSpells = [
     },
     {
         name: "Web",
+        url: "http://dnd2024.wikidot.com/spell:web",
         level: 2,
         school: "Conjuration",
         type: "Artificer, Sorcerer, Wizard",

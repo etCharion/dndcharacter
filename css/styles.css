@@ -1175,6 +1175,12 @@ textarea.inline-edit {
     gap: 20px;
 }
 
+.sd-title-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
 .sd-header-main h2 {
     color: var(--text-color);
     text-shadow: 0 0 10px var(--accent-glow);

@@ -88,10 +88,13 @@ function syncStateWithMasterData(targetState) {
     if (!targetState.plans) {
         targetState.plans = JSON.parse(JSON.stringify(characterData.plans));
     } else {
-        // Add missing plans to all, but don't overwrite
+        // Add missing plans to all, and sync URLs
         characterData.plans.all.forEach(masterPlan => {
-            if (!targetState.plans.all.some(p => p.name === masterPlan.name)) {
+            const existing = targetState.plans.all.find(p => p.name === masterPlan.name);
+            if (!existing) {
                 targetState.plans.all.push({ ...masterPlan });
+            } else if (masterPlan.url) {
+                existing.url = masterPlan.url;
             }
         });
     }
@@ -99,10 +102,13 @@ function syncStateWithMasterData(targetState) {
     if (!targetState.spells) {
         targetState.spells = JSON.parse(JSON.stringify(characterData.spells));
     } else {
-        // Add missing spells to all, but don't overwrite
+        // Add missing spells to all, and sync URLs
         characterData.spells.all.forEach(masterSpell => {
-            if (!targetState.spells.all.some(s => s.name === masterSpell.name)) {
+            const existing = targetState.spells.all.find(s => s.name === masterSpell.name);
+            if (!existing) {
                 targetState.spells.all.push({ ...masterSpell });
+            } else if (masterSpell.url) {
+                existing.url = masterSpell.url;
             }
         });
     }
@@ -117,6 +123,11 @@ function syncStateWithMasterData(targetState) {
         }
     });
 
+    targetState.plans.prepared.forEach(pp => {
+        const master = characterData.plans.all.find(p => p.name === pp.name);
+        if (master && master.url) pp.url = master.url;
+    });
+
     targetState.features.forEach(f => {
         let master = characterData.features.find(mf => mf.name === f.name);
         if (!master && f.name === "Warcaster") {
@@ -125,6 +136,7 @@ function syncStateWithMasterData(targetState) {
         if (master) {
             f.name = master.name;
             if (f.description === undefined) f.description = master.description;
+            if (master.url) f.url = master.url;
             f.level = master.level;
             if (master.actions) f.actions = master.actions;
             else delete f.actions;
@@ -1075,13 +1087,24 @@ window.copyToClipboard = (text, btn) => {
 
 function getWikidotUrl(item, type) {
     if (item.url) return item.url;
-    const slug = item.name.toLowerCase()
-        .replace(/ \+1/g, '-1')
+
+    let slug = item.name.toLowerCase()
+        .replace(/ \+/g, '-')
         .replace(/ /g, '-')
+        .replace(/'/g, '-')
         .replace(/[^\w-]/g, '');
 
     if (type === 'spell') return `http://dnd2024.wikidot.com/spell:${slug}`;
     if (type === 'feat') return `http://dnd2024.wikidot.com/feat:${slug}`;
+
+    if (type === 'plan' || type === 'inventory') {
+        // Grouped magic items fallback
+        if (slug.startsWith('shield-1')) slug = 'shield-1-2-or-3';
+        if (slug.startsWith('weapon-1')) slug = 'weapon-1-2-or-3';
+        if (slug.startsWith('armor-1')) slug = 'armor-1-2-or-3';
+        if (slug.startsWith('wand-of-the-war-mage-1')) slug = 'wand-of-the-war-mage-1-2-or-3';
+        return `http://dnd2024.wikidot.com/magic-item:${slug}`;
+    }
 
     return `http://dnd2024.wikidot.com/search:site/q/${encodeURIComponent(item.name)}`;
 }
@@ -2066,11 +2089,15 @@ function renderSteelDefender() {
     sd.ac = 12 + intMod;
     sd.hp.max = 5 + (5 * state.level);
 
+    const wikiUrl = getWikidotUrl(sd, 'feature');
     const div = document.getElementById('sd-info');
     div.innerHTML = `
         <div class="sd-full-stat-block">
             <div class="sd-header-main">
-                <h2 class="editable" data-field="steelDefender.name">${sd.name}</h2>
+                <div class="sd-title-row">
+                    <h2 class="editable" data-field="steelDefender.name">${sd.name}</h2>
+                    <a href="${wikiUrl}" target="_blank" class="wiki-link">Wiki ↗</a>
+                </div>
                 <div class="sd-main-essentials">
                     <div class="essential-item">
                         <span class="label">AC</span>
