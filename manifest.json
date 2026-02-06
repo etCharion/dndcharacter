@@ -1,0 +1,15 @@
+{
+  "name": "DND 2024 Character Sheet",
+  "short_name": "DND Sheet",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#a855f7",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/ios-filled/512/a855f7/dungeons-and-dragons.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

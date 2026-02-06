@@ -216,7 +216,8 @@ export const characterData = {
     settings: {
         featureSort: 'name',
         spellSort: 'level',
-        planSort: 'name'
+        planSort: 'name',
+        theme: 'punk-theme'
     },
     initiative: 3,
     speed: 30,

@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DND 2024 Character Sheet - Gimli Ironfist</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,200..900;1,200..900&family=MedievalSharp&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/ios-filled/50/a855f7/dungeons-and-dragons.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#a855f7">
 </head>
 <body class="punk-theme">
     <div id="login-screen" class="login-overlay hidden">
@@ -24,6 +30,10 @@
             </div>
             <div class="header-actions">
                 <div class="user-info">
+                    <select id="theme-select" class="small-btn">
+                        <option value="punk-theme">Punk Theme</option>
+                        <option value="parchment-theme">Fantasy Theme</option>
+                    </select>
                     <span id="user-email"></span>
                     <button id="logout-btn" class="small-btn">Logout</button>
                     <button id="switch-account-btn" class="small-btn">Switch Account</button>
