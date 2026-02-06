@@ -2189,8 +2189,8 @@ function renderPlans(filter = '') {
 
         const hasItem = state.inventory.some(item => item.isPlanItem && item.sourcePlanId === plan.id);
         const createBtn = hasItem
-            ? `<button class="small-btn danger" onclick="event.stopPropagation(); removeItemFromPlan('${plan.id}')">Smazat předmět</button>`
-            : `<button class="small-btn success" onclick="event.stopPropagation(); createItemFromPlan('${plan.id}')" ${info.current >= info.max ? 'disabled' : ''}>Vytvořit předmět</button>`;
+            ? `<button class="small-btn danger" onclick="event.stopPropagation(); removeItemFromPlan('${plan.id}')">Zničit</button>`
+            : `<button class="small-btn success" onclick="event.stopPropagation(); createItemFromPlan('${plan.id}')" ${info.current >= info.max ? 'disabled' : ''}>Vytvořit</button>`;
 
         // Find actual index in original array for editable fields
         const originalIdx = state.plans.prepared.findIndex(p => p.id === plan.id);
