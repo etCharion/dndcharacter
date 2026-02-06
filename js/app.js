@@ -2140,6 +2140,13 @@ window.filterSpells = () => {
 };
 
 
+function getInfusionLimitInfo() {
+    const feat = state.features.find(f => f.name === "Replicate Magic Item");
+    const max = feat ? (feat.limitedUse ? feat.limitedUse.max : 0) : 0;
+    const current = state.inventory.filter(item => item.isPlanItem).length;
+    return { current, max, feat };
+}
+
 function renderPlans(filter = '') {
     const tabEl = document.getElementById('plans');
     let sortRow = tabEl.querySelector('.sort-row');
@@ -2160,12 +2167,19 @@ function renderPlans(filter = '') {
     `;
 
     const preparedDiv = document.getElementById('prepared-plans');
-    preparedDiv.innerHTML = '<h3>Prepared Plans</h3>';
+    preparedDiv.innerHTML = '<h3>Vybrané plány (Infuze)</h3>';
+
+    const info = getInfusionLimitInfo();
+    const counterDiv = document.createElement('div');
+    counterDiv.className = 'infusion-counter';
+    counterDiv.innerHTML = `<strong>Aktivní předměty:</strong> ${info.current} / ${info.max}`;
+    if (info.current >= info.max) counterDiv.style.color = 'var(--accent-color)';
+    preparedDiv.appendChild(counterDiv);
+
     const sortedPrepared = sortPlans(state.plans.prepared);
     sortedPrepared.forEach((plan) => {
         if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
-        const idx = state.plans.prepared.findIndex(p => p.name === plan.name && p.description === plan.description);
-        const isExpanded = uiState.expandedPlans.has('prepared-' + idx);
+        const isExpanded = uiState.expandedPlans.has('prepared-' + plan.id);
         const pDiv = document.createElement('div');
         pDiv.className = `spell-item ${isExpanded ? 'expanded-item' : ''}`;
 
@@ -2173,22 +2187,33 @@ function renderPlans(filter = '') {
         const levelInfo = plan.level ? `Lvl ${plan.level}` : '';
         const wikiUrl = getWikidotUrl(plan, 'plan');
 
+        const hasItem = state.inventory.some(item => item.isPlanItem && item.sourcePlanId === plan.id);
+        const createBtn = hasItem
+            ? `<button class="small-btn danger" onclick="event.stopPropagation(); removeItemFromPlan('${plan.id}')">Smazat předmět</button>`
+            : `<button class="small-btn success" onclick="event.stopPropagation(); createItemFromPlan('${plan.id}')" ${info.current >= info.max ? 'disabled' : ''}>Vytvořit předmět</button>`;
+
+        // Find actual index in original array for editable fields
+        const originalIdx = state.plans.prepared.findIndex(p => p.id === plan.id);
+
         pDiv.innerHTML = `
-            <div onclick="togglePlanExpanded('prepared-${idx}')">
+            <div onclick="togglePlanExpanded('prepared-${plan.id}')">
                 <div class="spell-header">
-                    <strong class="editable" data-field="plans.prepared.${idx}.name">${plan.name}</strong>
+                    <strong class="editable" data-field="plans.prepared.${originalIdx}.name">${plan.name}</strong>
                     <span class="spell-preview">${levelInfo} | ${rarityInfo}</span>
-                    <button onclick="event.stopPropagation(); unpreparePlan(${idx})">Remove</button>
+                    <div class="spell-actions">
+                        ${createBtn}
+                        <button onclick="event.stopPropagation(); unpreparePlan('${plan.id}')">Odebrat</button>
+                    </div>
                 </div>
                 <div class="plan-desc ${isExpanded ? '' : 'hidden'}">
                     <div class="item-actions-row">
                         <a href="${wikiUrl}" target="_blank" class="wiki-link">Wiki ↗</a>
                         <button class="small-btn" onclick="event.stopPropagation(); copyToClipboard(\`${plan.description.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`, this)">Copy</button>
                         <span class="url-edit-label">URL:</span>
-                        <span class="editable url-editable" data-field="plans.prepared.${idx}.url" data-placeholder="Auto">${plan.url || ''}</span>
+                        <span class="editable url-editable" data-field="plans.prepared.${originalIdx}.url" data-placeholder="Auto">${plan.url || ''}</span>
                     </div>
                     <div><em>${plan.type}</em></div>
-                    <div class="editable" data-field="plans.prepared.${idx}.description" data-type="textarea">${plan.description}</div>
+                    <div class="editable" data-field="plans.prepared.${originalIdx}.description" data-type="textarea">${plan.description}</div>
                 </div>
             </div>
         `;
@@ -2200,7 +2225,7 @@ function renderPlans(filter = '') {
     });
 
     const allPlansDiv = document.getElementById('all-plans-list');
-    allPlansDiv.innerHTML = '<h3>All Magic Item Plans</h3>';
+    allPlansDiv.innerHTML = '<h3>Všechny plány magických předmětů</h3>';
     const sortedAll = sortPlans(state.plans.all);
     sortedAll.forEach((plan) => {
         if (filter && !plan.name.toLowerCase().includes(filter.toLowerCase())) return;
@@ -2209,8 +2234,8 @@ function renderPlans(filter = '') {
         const isPrepared = state.plans.prepared.some(p => p.name === plan.name);
         if (isPrepared && plan.name !== "Common magic item") return;
 
-        const idx = state.plans.all.findIndex(p => p.name === plan.name);
-        const isExpanded = uiState.expandedPlans.has('all-' + idx);
+        const originalIdx = state.plans.all.findIndex(p => p.name === plan.name && p.description === plan.description);
+        const isExpanded = uiState.expandedPlans.has('all-' + originalIdx);
         const pDiv = document.createElement('div');
         pDiv.className = `spell-item-all ${isExpanded ? 'expanded-item' : ''}`;
 
@@ -2219,11 +2244,11 @@ function renderPlans(filter = '') {
         const wikiUrl = getWikidotUrl(plan, 'plan');
 
         pDiv.innerHTML = `
-            <div onclick="togglePlanExpanded('all-${idx}')">
+            <div onclick="togglePlanExpanded('all-${originalIdx}')">
                 <div class="spell-header">
                     <strong>${plan.name}</strong>
                     <span class="spell-preview">${levelInfo} | ${rarityInfo}</span>
-                    <button onclick="event.stopPropagation(); preparePlan(${idx})">Select</button>
+                    <button onclick="event.stopPropagation(); preparePlan(${originalIdx})">Vybrat</button>
                 </div>
                 <div class="plan-desc ${isExpanded ? '' : 'hidden'}">
                     <div class="item-actions-row">
@@ -2338,7 +2363,20 @@ window.preparePlan = (idx) => {
     plan.id = 'prep_plan_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
     state.plans.prepared.push(plan);
 
-    // Add to inventory
+    saveState();
+    renderAll();
+};
+
+window.createItemFromPlan = (planId) => {
+    const plan = state.plans.prepared.find(p => p.id === planId);
+    if (!plan) return;
+
+    const info = getInfusionLimitInfo();
+    if (info.current >= info.max) {
+        alert(`Limit aktivních předmětů (${info.max}) byl dosažen!`);
+        return;
+    }
+
     state.inventory.push({
         id: 'item_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(),
         name: plan.name + ' (Plán)',
@@ -2357,16 +2395,19 @@ window.preparePlan = (idx) => {
     renderAll();
 };
 
-window.unpreparePlan = (idx) => {
+window.removeItemFromPlan = (planId) => {
+    state.inventory = state.inventory.filter(item => item.sourcePlanId !== planId);
+    saveState();
+    renderAll();
+};
+
+window.unpreparePlan = (planId) => {
+    const idx = state.plans.prepared.findIndex(p => p.id === planId);
+    if (idx === -1) return;
     const plan = state.plans.prepared[idx];
 
     // Remove from inventory
-    if (plan.id) {
-        state.inventory = state.inventory.filter(item => item.sourcePlanId !== plan.id);
-    } else {
-        // Fallback for older states
-        state.inventory = state.inventory.filter(item => !(item.isPlanItem && item.name.startsWith(plan.name)));
-    }
+    state.inventory = state.inventory.filter(item => item.sourcePlanId !== plan.id);
 
     state.plans.prepared.splice(idx, 1);
     saveState();
@@ -2376,28 +2417,11 @@ window.unpreparePlan = (idx) => {
 function renderAll() {
     if (!state || !state.plans || !state.plans.prepared) return;
 
-    // Ensure all prepared plans have a linked inventory item
     let changed = false;
+    // Ensure all prepared plans have an ID
     state.plans.prepared.forEach(plan => {
         if (!plan.id) {
             plan.id = 'prep_plan_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-            changed = true;
-        }
-        const existing = state.inventory.find(item => item.isPlanItem && item.sourcePlanId === plan.id);
-        if (!existing) {
-            state.inventory.push({
-                id: 'item_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(),
-                name: plan.name + ' (Plán)',
-                type: plan.type ? (plan.type.includes('Armor') ? 'Armor' : (plan.type.includes('Weapon') ? 'Weapon' : 'Other')) : 'Other',
-                quantity: 1,
-                weight: 0,
-                price: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
-                description: plan.description,
-                rarity: plan.rarity || 'Common',
-                equipped: false,
-                isPlanItem: true,
-                sourcePlanId: plan.id
-            });
             changed = true;
         }
     });
@@ -2411,6 +2435,13 @@ function renderAll() {
         }
         return true;
     });
+
+    // Sync Replicate Magic Item used count with inventory
+    const info = getInfusionLimitInfo();
+    if (info.feat && info.feat.limitedUse && info.feat.limitedUse.used !== info.current) {
+        info.feat.limitedUse.used = info.current;
+        changed = true;
+    }
 
     if (changed || state.inventory.length !== initialCount) {
         saveState();

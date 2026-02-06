@@ -1421,6 +1421,21 @@ hr {
     border-color: #22c55e;
 }
 
+.small-btn.danger {
+    background-color: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+.infusion-counter {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+    border-left: 4px solid var(--accent-color);
+}
+
 .item-actions-row {
     display: flex;
     align-items: center;
